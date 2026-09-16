@@ -1,0 +1,6 @@
+{
+  "name": "birch-site",
+  "private": true,
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

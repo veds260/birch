@@ -1,0 +1,9 @@
+projects/
+models/
+tools/scenevision
+tools/talkers
+tools/personmask
+.birch.json
+server.log
+node_modules/
+.DS_Store

@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+'use strict';
+// birch            start Birch if it isn't running and open it in the browser
+// birch cut FILE   hand Birch a clip and open it
+// birch mcp        the MCP server Claude Code talks to (it starts Birch itself)
+// birch stop | update | doctor | logs
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const { spawn, execFile } = require('child_process');
+
+const ROOT = fs.realpathSync(path.join(__dirname, '..'));
+const PORT = Number(process.env.BIRCH_PORT) || 8796;
+const BASE = `http://127.0.0.1:${PORT}`;
+const LOG = path.join(ROOT, 'server.log');
+
+function request(method, p, body) {
+  return new Promise((resolve, reject) => {
+    const data = body === undefined ? null : Buffer.from(JSON.stringify(body));
+    const req = http.request(BASE + p, { method, headers: data ? { 'Content-Type': 'application/json', 'Content-Length': data.length } : {}, timeout: 30000 }, res => {
+      let out = ''; res.on('data', d => out += d);
+      res.on('end', () => { try { resolve({ status: res.statusCode, json: JSON.parse(out) }); } catch { resolve({ status: res.statusCode, json: null }); } });
+    });
+    req.on('error', reject); req.on('timeout', () => req.destroy(new Error('timeout')));
+    if (data) req.write(data); req.end();
+  });
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function running() { try { const r = await request('GET', '/api/birch/ping'); return r.json && r.json.birch; } catch { return false; } }
+
+async function start(quiet) {
+  if (await running()) return;
+  const out = fs.openSync(LOG, 'a');
+  const child = spawn(process.execPath, ['--no-warnings', path.join(ROOT, 'server.js')], {
+    cwd: ROOT, detached: true, stdio: ['ignore', out, out], env: { ...process.env, PORT: String(PORT) },
+  });
+  child.unref();
+  for (let i = 0; i < 60; i++) { if (await running()) return; await sleep(250); }
+  if (!quiet) console.error(`Birch didn't start. The log is at ${LOG}`);
+  process.exit(1);
+}
+const openUrl = url => execFile('open', [url], () => {});
+
+async function main() {
+  const [cmd, ...rest] = process.argv.slice(2);
+
+  if (!cmd || cmd === 'open') {
+    await start();
+    const st = (await request('GET', '/api/birch/setup')).json;
+    openUrl(BASE + '/birch');
+    console.log(st && st.ready ? `Birch is open at ${BASE}/birch` : `Birch is open at ${BASE}/birch, finish setup there`);
+    return;
+  }
+
+  if (cmd === 'cut') {
+    const file = rest[0] && path.resolve(rest[0]);
+    if (!file || !fs.existsSync(file)) { console.error('usage: birch cut path/to/clip.mov'); process.exit(1); }
+    await start();
+    const r = await request('POST', '/api/importPath', { file });
+    if (r.status === 403) { openUrl(BASE + '/birch'); console.error(r.json.error); process.exit(1); }
+    if (!r.json || !r.json.id) { console.error((r.json && r.json.error) || 'Birch could not read that file.'); process.exit(1); }
+    const id = r.json.id;
+    process.stdout.write('transcribing');
+    for (;;) {
+      const j = (await request('GET', '/api/job?id=' + encodeURIComponent(id))).json || {};
+      if (j.stage === 'error') { console.error('\n' + (j.error || 'it failed')); process.exit(1); }
+      if (j.stage === 'done') break;
+      process.stdout.write('.'); await sleep(1500);
+    }
+    openUrl(`${BASE}/birch?project=${encodeURIComponent(id)}`);
+    console.log(`\nopened ${BASE}/birch?project=${id}`);
+    return;
+  }
+
+  if (cmd === 'mcp') return require(path.join(ROOT, 'lib', 'mcp.js')).serve({ start: () => start(true), request, BASE, openUrl, root: ROOT });
+
+  if (cmd === 'stop') {
+    const r = await running().then(ok => ok && request('GET', '/api/birch/ping'));
+    if (!r) return console.log('Birch isn\'t running');
+    try { process.kill(r.json.pid); } catch {}
+    return console.log('stopped');
+  }
+
+  if (cmd === 'update') {
+    execFile('git', ['-C', ROOT, 'pull', '--ff-only'], (e, out, err) => {
+      if (e) { console.error(err || e.message); process.exit(1); }
+      console.log(out.trim() || 'up to date');
+      console.log('run birch stop, then birch, to load the new version');
+    });
+    return;
+  }
+
+  if (cmd === 'doctor') {
+    await start();
+    const st = (await request('GET', '/api/birch/setup')).json;
+    const line = (ok, text) => console.log(`  ${ok ? '✓' : '·'} ${text}`);
+    line(st.steps.github.done, st.steps.github.done ? `GitHub: ${st.steps.github.login}` : 'GitHub star and follow');
+    line(st.steps.tools.done, 'ffmpeg and whisper');
+    line(st.steps.model.done, 'speech model');
+    line(st.steps.vision.done, 'face tools');
+    line(st.steps.claude.done, 'Claude Code (optional)');
+    line(st.steps.mcp.done, 'Birch added to Claude Code (optional)');
+    if (!st.ready) console.log(`\n  finish setup at ${BASE}/birch`);
+    return;
+  }
+
+  if (cmd === 'logs') return console.log(fs.existsSync(LOG) ? fs.readFileSync(LOG, 'utf8').split('\n').slice(-40).join('\n') : 'no log yet');
+
+  console.log('birch            open Birch in your browser\nbirch cut FILE   start a clip and open it\nbirch mcp        run the MCP server for Claude Code\nbirch doctor     check setup\nbirch update     pull the latest version\nbirch stop       stop the background server');
+}
+main().catch(e => { console.error(e.message); process.exit(1); });

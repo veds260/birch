@@ -1,0 +1,139 @@
+[
+  {
+    "key": "pops",
+    "name": "Big word pops",
+    "what": "Huge orange words with confetti when you stress one.",
+    "when": "Explainers with a few words you stress.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "minimal",
+      "gapMax": 0.5,
+      "normalize": true,
+      "crf": 21
+    },
+    "instruction": "Lay out the big-word-pops format. Pick the four single words or two-word phrases the speaker stresses hardest and add a pop at each, text in caps, 1.2 seconds. If the speaker lists five or more things in a row, add one cloud with those words at the moment the list starts. Add one gradient hook at 0:00 with a two-line reframe of the topic and a short sub line. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  },
+  {
+    "key": "split",
+    "name": "Split screen",
+    "what": "Screenshot on top, you below.",
+    "when": "Walking through a tool, a doc or a dashboard.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "seam",
+      "gapMax": 0.5,
+      "normalize": true,
+      "crf": 21
+    },
+    "instruction": "Lay out the split-screen format. Find the three moments where a screenshot, product or document is being described and add a reframe with corner split for 7 seconds at each. Add one title at 0:00, sentence case, not a quote. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  },
+  {
+    "key": "list",
+    "name": "Numbered list",
+    "what": "A numbered list that builds as you talk.",
+    "when": "Any 'five things' or 'three ways' video.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "minimal",
+      "gapMax": 0.5,
+      "normalize": true,
+      "crf": 21
+    },
+    "instruction": "Lay out the numbered-build format. Write a title for 0:00 that reframes the topic in under six words. Find every item the speaker enumerates and add one list with a line per item, each pinned to the moment it is said, numbered, look plain. If there is a moment worth a white card, add one card. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  },
+  {
+    "key": "shrink",
+    "name": "Picture in picture",
+    "what": "You shrink to a corner while a photo fills the frame.",
+    "when": "Stories about a company, a person, something you can show.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "minimal",
+      "gapMax": 0.5,
+      "normalize": true,
+      "crf": 21
+    },
+    "instruction": "Lay out the insert-and-shrink format. Find each named company, person, product or event and add a reframe with corner bl for 6 seconds at the moment it is first named. Add a title at 0:00 that is a claim, not a quote. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  },
+  {
+    "key": "plate",
+    "name": "Loud captions",
+    "what": "Big bold captions, live word in yellow.",
+    "when": "Short and punchy, one idea.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "plate",
+      "gapMax": 0.4,
+      "normalize": true,
+      "crf": 21
+    },
+    "instruction": null
+  },
+  {
+    "key": "scrawl",
+    "name": "Handwritten",
+    "what": "Handwritten captions, a bit rough.",
+    "when": "Casual and personal, a bit rough on purpose.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "scrawl",
+      "gapMax": 0.5,
+      "normalize": true,
+      "crf": 21
+    },
+    "instruction": "Lay out the handwritten format. Add one title at 0:00 in face scrawl, lowercase, not a quote. Where a name, product or place is first said, add a gradient with that single word, face scrawl, 2 seconds. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  },
+  {
+    "key": "reply",
+    "name": "Comment reply",
+    "what": "Opens on a comment, then you answer it.",
+    "when": "Answering something people keep asking you.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "minimal",
+      "gapMax": 0.5,
+      "normalize": true,
+      "crf": 21
+    },
+    "instruction": "Lay out the comment-reply format. Write the question this talk answers as a comment from a made-up handle and add it as a comment card at 0:00 for 4 seconds. Add one pop on the word where the answer lands. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  },
+  {
+    "key": "story",
+    "name": "Story",
+    "what": "Cinema bars and thin captions.",
+    "when": "A memory, a turning point, something told outdoors.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "story",
+      "gapMax": 0.3,
+      "normalize": true,
+      "crf": 20,
+      "letterbox": true
+    },
+    "instruction": "Lay out the story format. Add a letterbox. Find the one number or phrase the story turns on and add a pop there, 1.5 seconds. Nothing else. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  },
+  {
+    "key": "jolt",
+    "name": "One big jolt",
+    "what": "One punch-in and bass hit on your best line.",
+    "when": "A talk with one line that really lands.",
+    "settings": {
+      "aspect": "9:16",
+      "captions": true,
+      "capStyle": "minimal",
+      "gapMax": 0.5,
+      "normalize": true,
+      "crf": 21,
+      "grade": "punch"
+    },
+    "instruction": "Lay out the one-jolt format. Find the single most surprising or contrarian line and add a cow there for 0.7 seconds, plus a pop with the two words that carry it. Add a title at 0:00 that is a claim, not a quote. Nothing else. Place at most four things across the whole clip and spread them out; leave the rest of the video plain."
+  }
+]

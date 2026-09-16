@@ -1,0 +1,14 @@
+{
+  "name": "birch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A beaver that cuts your talking videos into reels. Runs on your Mac, plans with your own Claude.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --no-warnings server.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "license": "MIT"
+}

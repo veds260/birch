@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Birch</title>
+<link rel="icon" href="/birch/avatar-cut.webp">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --blue:#2B5BFF;--blue-deep:#1C3FD9;--ink:#0B1440;--ink-dim:#4A5380;--cream:#FFF8EA;--yellow:#FFD23F;--orange:#FF7A1A;--chestnut:#8B4A2B;
+  --line:rgba(11,20,64,.12);
+  --disp:'Bricolage Grotesque','Helvetica Neue',system-ui,sans-serif;--body:'Geist',system-ui,-apple-system,sans-serif;--mono:'Geist Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--blue);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+h1,h2,h3{font-family:var(--disp);font-weight:800;letter-spacing:-.03em;margin:0;text-wrap:balance}
+p{margin:0}
+button{font-family:inherit;cursor:pointer}
+.mono{font-family:var(--mono)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 20px;font-weight:600;font-size:15px;
+  background:var(--orange);color:#1A0E02;box-shadow:0 4px 0 rgba(11,20,64,.22);transition:transform .1s,background .2s;text-decoration:none}
+.btn:hover{background:#FF8C33}.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(11,20,64,.22)}
+.btn.soft{background:#fff;color:var(--ink)}
+.btn.soft:hover{background:#F1F4FF}
+.btn.blue{background:var(--blue);color:#fff}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+
+/* shell */
+.app{display:grid;grid-template-rows:auto 1fr;height:100%}
+.top{display:flex;align-items:center;gap:18px;padding:14px 22px;color:var(--cream)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;font-size:22px;cursor:pointer;background:none;border:0;color:inherit;padding:0}
+.brand i{width:36px;height:36px;border-radius:50%;background:var(--yellow);overflow:hidden;display:grid;place-items:center}
+.brand img{width:120%;margin-top:18%}
+.pname{font-size:14px;opacity:.8;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail{margin-left:auto;display:flex;gap:4px;background:rgba(11,20,64,.2);border-radius:14px;padding:4px}
+.rail button{border:0;background:transparent;color:#D6DFFF;font-weight:600;font-size:13px;padding:8px 12px;border-radius:10px;display:flex;align-items:center;gap:7px}
+.rail button b{font-family:var(--mono);font-weight:500;font-size:11px;opacity:.7}
+.rail button.on{background:var(--yellow);color:var(--ink)}
+.rail button.done{color:#fff}
+.rail button[disabled]{opacity:.35;cursor:default}
+
+.body{display:grid;grid-template-columns:minmax(260px,34%) minmax(0,1fr);min-height:0}
+.stage{position:relative;display:grid;place-items:center;padding:20px;min-height:0}
+.sun{position:absolute;width:min(78%,430px);aspect-ratio:1;border-radius:50%;background:var(--yellow);transition:transform .6s cubic-bezier(.3,1.4,.5,1)}
+.birch{position:relative;width:min(70%,380px);filter:drop-shadow(0 34px 30px rgba(11,20,64,.3));animation:float 5s ease-in-out infinite}
+.birch img,.birch video{display:block;width:100%;height:auto}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-12px) rotate(1deg)}}
+.birch.chomp{animation:chomp .5s ease-in-out infinite}
+@keyframes chomp{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(1.04)}}
+.bubble{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);background:var(--cream);border-radius:14px;padding:10px 16px;font-weight:600;
+  box-shadow:0 10px 24px rgba(11,20,64,.25);max-width:86%;text-align:center;font-size:15px}
+.bubble::before{content:"";position:absolute;left:50%;top:-8px;width:16px;height:16px;background:var(--cream);transform:translateX(-50%) rotate(45deg);border-radius:3px}
+
+.panel{background:var(--cream);border-radius:26px 0 0 0;overflow:auto;padding:30px clamp(20px,3vw,40px) 40px;min-height:0}
+.view{display:none;max-width:980px}
+.view.on{display:block;animation:in .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+.view h2{font-size:clamp(30px,3.4vw,46px);line-height:.98;margin-top:8px}
+.lede{color:var(--ink-dim);margin-top:10px;max-width:60ch;font-size:16px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px;align-items:center}
+.card{background:#fff;border-radius:18px;box-shadow:0 1px 0 var(--line),0 12px 30px -20px rgba(11,20,64,.35)}
+
+/* drop */
+.drop{display:block;margin-top:22px;border:2.5px dashed rgba(43,91,255,.45);border-radius:22px;padding:44px 20px;text-align:center;background:#fff;transition:background .2s,border-color .2s;cursor:pointer}
+.drop.over{background:#EEF2FF;border-color:var(--blue)}
+.drop h3{font-size:26px}
+.drop p{color:var(--ink-dim);margin-top:6px}
+.drop .btn{margin-top:18px}
+.recent{margin-top:30px}
+.recent h3{font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:12px}
+.proj{text-align:left;border:0;padding:0;overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 1px 0 var(--line),0 10px 24px -18px rgba(11,20,64,.4);transition:transform .15s}
+.proj:hover{transform:translateY(-3px)}
+.proj .th{aspect-ratio:16/10;background:#DDE4FF center/cover no-repeat}
+.proj .meta{padding:10px 12px}
+.proj b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj span{font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
+
+/* working */
+.bigbar{height:14px;border-radius:8px;background:#E3E8FA;overflow:hidden;margin-top:28px}
+.bigbar i{display:block;height:100%;width:0;background:repeating-linear-gradient(135deg,var(--blue) 0 10px,#4F77FF 10px 20px);transition:width .4s;background-size:28px 28px;animation:stripes 1s linear infinite}
+@keyframes stripes{to{background-position:28px 0}}
+.steps{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.steps span{font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:8px;background:#E3E8FA;color:var(--ink-dim)}
+.steps span.on{background:var(--blue);color:#fff}
+.steps span.done{background:var(--yellow);color:var(--ink)}
+
+/* cut */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.stat{padding:16px}
+.stat b{display:block;font-family:var(--disp);font-weight:800;font-size:34px;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--ink-dim)}
+.stat.hi{background:var(--yellow)}
+.cutwrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.vid{background:#0B1440;border-radius:16px;overflow:hidden}
+.vid video{display:block;width:100%;max-height:480px}
+.words{padding:18px;max-height:480px;overflow:auto;line-height:2.1;font-size:16px}
+.words .hint{font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-bottom:6px;line-height:1.4}
+.w{border:0;background:transparent;padding:1px 3px;border-radius:5px;font-size:inherit;color:var(--ink);transition:background .15s}
+.w:hover{background:#EEF2FF}
+.w.cut{color:var(--orange);text-decoration:line-through;text-decoration-thickness:2px;opacity:.75}
+.w.retake{background:#FFE7D6}
+.w.now{background:var(--yellow)}
+.gap{display:inline-block;font-family:var(--mono);font-size:11px;color:#fff;background:var(--orange);border-radius:5px;padding:0 5px;margin:0 3px;vertical-align:2px;line-height:1.6}
+
+/* plan */
+.name{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-family:var(--mono);color:var(--ink-dim)}
+.field input{border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;background:#fff}
+.board{margin-top:16px;overflow:hidden}
+.beat{display:grid;grid-template-columns:74px 112px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.beat:last-child{border-bottom:0}
+.beat .t{font-family:var(--mono);color:var(--blue);font-size:13px}
+.beat .k{font-size:12px;font-weight:600;border-radius:7px;padding:3px 8px;justify-self:start}
+.k.card{background:#DDF5EC;color:#0E6B4E;box-shadow:none}
+.k.pop{background:#FFE7D6;color:#9A3F00}
+.beat input{border:0;background:transparent;font:inherit;font-weight:600;padding:4px 6px;border-radius:6px;width:100%}
+.beat input:focus{background:#F1F4FF;outline:0}
+.beat .x{border:0;background:#EEF2FF;border-radius:9px;padding:7px 11px;font-weight:600;font-size:13px;color:var(--ink)}
+.beat.off{opacity:.45}
+.beat.off input{text-decoration:line-through;text-decoration-color:var(--orange);text-decoration-thickness:2px}
+.beat.off .x{background:var(--yellow)}
+.empty{padding:22px;color:var(--ink-dim)}
+
+/* look */
+.read{display:flex;gap:14px;align-items:center;padding:14px 16px;margin-top:20px}
+.read .dot{width:12px;height:12px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 4px #FFF3C4;flex:none}
+.read.busy .dot{animation:blink 1s ease-in-out infinite}
+.read.good .dot{background:#2BB673;box-shadow:0 0 0 4px #DDF5EC}
+.read.meh .dot{background:#C9CFE3;box-shadow:0 0 0 4px #EEF1FA}
+@keyframes blink{50%{opacity:.25}}
+.read b{display:block;font-size:15px}
+.read span{font-size:13px;color:var(--ink-dim)}
+.k.title{background:#E3E9FF;color:#1C3FD9}
+.sub{font-size:18px;margin-top:26px}
+.formats{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:12px}
+.fmt{position:relative;border:0;padding:14px 14px 16px;text-align:left;background:#fff;border-radius:16px;box-shadow:0 1px 0 var(--line);transition:transform .15s,box-shadow .15s;font:inherit;color:inherit}
+.fmt:hover{transform:translateY(-2px)}
+.fmt.on{box-shadow:0 0 0 3px var(--blue)}
+.fmt b{display:block;font-size:15px;margin-bottom:4px}
+.fmt span{font-size:12.5px;color:var(--ink-dim);line-height:1.4;display:block}
+.fmt em{position:absolute;top:-9px;right:10px;font-style:normal;font-size:11px;font-weight:700;background:var(--yellow);color:var(--ink);border-radius:6px;padding:3px 7px}
+.fmt em[hidden]{display:none}
+.looks{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-top:12px}
+.look{border:0;padding:12px;text-align:left;background:#fff;border-radius:18px;box-shadow:0 1px 0 var(--line);transition:transform .15s,box-shadow .15s}
+.look:hover{transform:translateY(-3px)}
+.look.on{box-shadow:0 0 0 3px var(--blue)}
+.ph{position:relative;aspect-ratio:9/16;border-radius:14px;overflow:hidden}
+.ph img{position:absolute;left:50%;bottom:-6%;width:90%;transform:translateX(-50%)}
+.look b{display:block;margin-top:10px;font-size:15px}
+.look span{font-size:12px;color:var(--ink-dim)}
+.l0{background:#2B5BFF}.l1{background:#FF7A1A}.l2{background:#3FC7A6}.l3{background:#FF6FA0}
+.cap{position:absolute;left:6%;right:6%;top:64%;text-align:center;color:#fff;font-weight:700;font-size:12px;text-shadow:0 2px 6px rgba(0,0,0,.5);z-index:2}
+.cap.loud{font-family:var(--disp);font-weight:800;font-size:19px;color:#39E08B;-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:none;text-transform:uppercase;top:58%}
+.cap.hl{font-family:var(--disp);font-weight:800;font-size:16px;text-transform:uppercase;text-shadow:none;-webkit-text-stroke:3px #000;paint-order:stroke fill;top:60%}
+.cap.hl em{font-style:normal;color:#F5D033}
+.cap.off{display:none}
+.row2{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-top:22px}
+.seg{display:inline-flex;background:#fff;border-radius:12px;padding:4px;box-shadow:0 1px 0 var(--line)}
+.seg button{border:0;background:transparent;padding:8px 14px;border-radius:9px;font-weight:600;font-size:14px;color:var(--ink-dim)}
+.seg button.on{background:var(--blue);color:#fff}
+
+/* sound */
+.beds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.bed{border:0;text-align:left;padding:16px;background:#fff;border-radius:16px;box-shadow:0 1px 0 var(--line);transition:transform .15s}
+.bed:hover{transform:translateY(-2px)}
+.bed.on{box-shadow:0 0 0 3px var(--blue)}
+.bed b{display:block;font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.bed span{font-size:13px;color:var(--ink-dim);display:block;min-height:38px}
+.bed .play{margin-top:10px;border:0;background:#EEF2FF;border-radius:9px;padding:6px 10px;font-weight:600;font-size:12px;color:var(--ink)}
+.bed .play.playing{background:var(--yellow)}
+.sliders{display:flex;gap:24px;flex-wrap:wrap;align-items:center;margin-top:22px;padding:18px}
+.sliders label{font-weight:600;display:flex;align-items:center;gap:12px}
+input[type=range]{accent-color:var(--blue);width:180px}
+.pads{display:flex;gap:8px;flex-wrap:wrap}
+.pads button{border:0;background:#FFE7D6;border-radius:9px;padding:7px 11px;font-weight:600;font-size:13px}
+.toggle{display:inline-flex;align-items:center;gap:10px;font-weight:600;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--blue)}
+
+/* export */
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.summary div{padding:14px}
+.summary span{display:block;font-family:var(--mono);font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em}
+.summary b{font-size:16px}
+.result{margin-top:22px;display:none;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:18px;align-items:start}
+.result.on{display:grid}
+.result video{width:100%;border-radius:16px;background:#0B1440;display:block}
+.setup{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+.step{padding:18px 20px;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:14px;align-items:start}
+.step .tick{width:26px;height:26px;border-radius:50%;background:#E3E8FA;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--ink-dim);margin-top:2px}
+.step.done .tick{background:#2BB673;color:#fff}
+.step b{display:block;font-size:16px}
+.step p{margin:3px 0 0;font-size:13.5px;color:var(--ink-dim)}
+.step .opt{font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-left:6px;font-weight:500}
+.step .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.step .acts .btn{padding:9px 14px;font-size:14px}
+.step .more{grid-column:2 / 4;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.step .more input{border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;background:#fff;min-width:200px}
+.step .bar{grid-column:2 / 4;height:8px;border-radius:5px;background:#E3E8FA;overflow:hidden;display:none}
+.step .bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .3s}
+.step.busy .bar{display:block}
+.step .msg{grid-column:2 / 4;font-size:13px;font-family:var(--mono);color:var(--ink-dim);min-height:0}
+.step .msg.bad{color:#B3261E;font-family:var(--body);font-weight:600}
+.step.done .acts,.step.done .more{display:none}
+.err{margin-top:14px;color:#B3261E;font-weight:600;display:none}
+.err.on{display:block}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;border-radius:12px;padding:11px 16px;font-weight:600;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);z-index:50}
+.toast.on{transform:translateX(-50%) translateY(0)}
+
+.look .cap{pointer-events:none}
+@media (max-width:1100px){.beds,.summary,.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cutwrap,.result{grid-template-columns:1fr}}
+@media (max-width:860px){body{overflow:auto}.body{grid-template-columns:1fr}.stage{height:280px}.panel{border-radius:26px 26px 0 0}.rail button span{display:none}.pname{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <button class="brand" id="home"><i><img src="/birch/avatar-cut.webp" alt=""></i>Birch</button>
+    <span class="pname" id="pname"></span>
+    <nav class="rail" id="rail">
+      <button data-go="drop" class="on"><b>01</b><span>Drop</span></button>
+      <button data-go="cut" disabled><b>02</b><span>Cut</span></button>
+      <button data-go="plan" disabled><b>03</b><span>Plan</span></button>
+      <button data-go="look" disabled><b>04</b><span>Look</span></button>
+      <button data-go="sound" disabled><b>05</b><span>Sound</span></button>
+      <button data-go="export" disabled><b>06</b><span>Export</span></button>
+    </nav>
+  </header>
+
+  <div class="body">
+    <aside class="stage">
+      <div class="sun" id="sun"></div>
+      <div class="birch" id="birch"><img id="birchImg" src="/birch/hero-cut.webp" alt="Birch"></div>
+      <div class="bubble" id="bubble">Hand me a clip.</div>
+    </aside>
+
+    <main class="panel">
+
+      <section class="view" id="v-setup">
+        <div class="eyebrow">Setup</div>
+        <h2>Let's get Birch ready</h2>
+        <p class="lede">A few things, once. Everything runs on your Mac after this.</p>
+        <div class="setup">
+          <div class="card step" data-step="github"><i class="tick">1</i><div><b>Star Birch and follow me on GitHub</b><p>That's the price. Do both, type your username, and Birch checks.</p></div>
+            <div class="acts"><a class="btn soft" href="https://github.com/veds260/birch" target="_blank" rel="noopener">★ Star</a><a class="btn soft" href="https://github.com/veds260" target="_blank" rel="noopener">Follow @veds260</a></div>
+            <div class="more"><input id="ghUser" placeholder="your GitHub username" autocomplete="off"><button class="btn" id="ghCheck">Check</button><button class="btn soft" id="ghClick" hidden>Do both with the GitHub CLI</button></div>
+            <div class="msg" id="ghMsg"></div></div>
+          <div class="card step" data-step="tools"><i class="tick">2</i><div><b>ffmpeg and whisper</b><p>They cut the video and turn speech into words. Installed with Homebrew.</p></div>
+            <div class="acts"><button class="btn" data-run="tools">Install</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+          <div class="card step" data-step="model"><i class="tick">3</i><div><b>The speech model</b><p>About 490 MB, downloaded once.</p></div>
+            <div class="acts"><button class="btn" data-run="model">Download</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+          <div class="card step" data-step="vision"><i class="tick">4</i><div><b>Face tools</b><p>Built on your Mac so Birch can find who's talking.</p></div>
+            <div class="acts"><button class="btn" data-run="vision">Build</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+          <div class="card step" data-step="claude"><i class="tick">5</i><div><b>Claude Code<span class="opt">optional</span></b><p>Lets Birch name the speaker and plan the edit on your own Claude plan.</p></div>
+            <div class="acts"><a class="btn soft" href="https://docs.claude.com/en/docs/claude-code/setup" target="_blank" rel="noopener">How to install</a><button class="btn soft" data-recheck>I did it</button></div><div class="msg"></div></div>
+          <div class="card step" data-step="mcp"><i class="tick">6</i><div><b>Use Birch from Claude<span class="opt">optional</span></b><p>Adds Birch to Claude Code, so you can say "cut this into a reel".</p></div>
+            <div class="acts"><button class="btn" data-run="mcp">Add to Claude Code</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+        </div>
+        <p class="err" id="setupErr"></p>
+        <div class="actions"><button class="btn" id="setupAll">Set up the rest</button><button class="btn soft" id="setupGo" hidden>Start cutting</button></div>
+      </section>
+
+      <section class="view" id="v-drop">
+        <div class="eyebrow">01 · Drop</div>
+        <h2>What are we cutting today?</h2>
+        <p class="lede">Drop a talking clip in. Birch transcribes it on your Mac, finds the pauses and repeated takes, and gets a first cut ready for you to check.</p>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="video/*" hidden>
+          <h3>Drop a video here</h3>
+          <p>mp4, mov or webm, straight off your phone is fine</p>
+          <span class="btn">Choose a file</span>
+        </label>
+        <div class="recent" id="recentWrap">
+          <h3>Pick up where you left off</h3>
+          <div class="grid" id="recent"></div>
+        </div>
+      </section>
+
+      <section class="view" id="v-work">
+        <div class="eyebrow">Chewing</div>
+        <h2 id="workTitle">Birch is going through your clip</h2>
+        <p class="lede" id="workNote">This part runs on your Mac, so it takes about a tenth of the clip's length.</p>
+        <div class="bigbar"><i id="workBar"></i></div>
+        <div class="steps" id="workSteps"><span data-s="copying">copying</span><span data-s="extracting">pulling audio</span><span data-s="transcribing">transcribing</span><span data-s="done">first cut</span></div>
+        <p class="err" id="workErr"></p>
+      </section>
+
+      <section class="view" id="v-cut">
+        <div class="eyebrow">02 · Cut</div>
+        <h2>Here's his first cut</h2>
+        <p class="lede">Crossed-out words are gone. Click any word to put it back or take it out, and the numbers update as you go.</p>
+        <div class="stats">
+          <div class="card stat"><b id="sSrc">0s</b><span>your clip</span></div>
+          <div class="card stat hi"><b id="sKept">0s</b><span>after Birch</span></div>
+          <div class="card stat"><b id="sPause">0</b><span>pauses he found</span></div>
+          <div class="card stat"><b id="sRetake">0</b><span>repeated takes dropped</span></div>
+        </div>
+        <div class="cutwrap">
+          <div class="vid"><video id="srcVid" controls playsinline></video></div>
+          <div class="card words" id="words"></div>
+        </div>
+        <div class="actions"><button class="btn" data-next="plan">Looks good, plan it</button></div>
+      </section>
+
+      <section class="view" id="v-plan">
+        <div class="eyebrow">03 · Plan</div>
+        <h2>What goes on screen, and when</h2>
+        <p class="lede">Birch drafted this from your transcript. Cross out anything you don't want or fix any word. Only what's on this list goes into the export.</p>
+        <div class="card read busy" id="read"><i class="dot"></i><div><b id="readHead">Birch is reading your clip</b><span id="readSub">working out who's talking and what's worth putting on screen</span></div></div>
+        <div class="name">
+          <div class="field"><label for="who">Who's talking, for the name card</label><input id="who" placeholder="e.g. Maya Chen"></div>
+          <div class="field"><label for="role">One line under the name</label><input id="role" placeholder="e.g. founder, Northwind"></div>
+        </div>
+        <div class="card board" id="board"></div>
+        <div class="actions"><button class="btn soft" id="replan">Draft it again</button><button class="btn" data-next="look">Pick a look</button></div>
+      </section>
+
+      <section class="view" id="v-look">
+        <div class="eyebrow">04 · Look</div>
+        <h2>Pick a format</h2>
+        <p class="lede">Birch marked the one he'd use.</p>
+        <div class="formats" id="formats"></div>
+        <h3 class="sub">Captions</h3>
+        <div class="looks" id="looks">
+          <button class="look" data-style="auto" id="lookAuto"><div class="ph l0"><img src="/birch/avatar-cut.webp" alt=""><div class="cap">format decides</div></div><b>Match the format</b><span>each format has its own caption look</span></button>
+          <button class="look" data-style="minimal"><div class="ph l0"><img src="/birch/phone-cut.webp" alt=""><div class="cap">this is where it starts</div></div><b>Clean</b><span>small, calm, stays out of the way</span></button>
+          <button class="look" data-style="pop"><div class="ph l1"><img src="/birch/music-cut.webp" alt=""><div class="cap loud">turn it up</div></div><b>Loud</b><span>big bold words, one line at a time</span></button>
+          <button class="look" data-style="plate"><div class="ph l2"><img src="/birch/hero-cut.webp" alt=""><div class="cap hl">this is <em>huge</em></div></div><b>Highlight</b><span>the word you're saying lights up</span></button>
+          <button class="look" data-style="none"><div class="ph l3"><img src="/birch/plan-cut.webp" alt=""><div class="cap off"></div></div><b>No captions</b><span>just the cut and the cards</span></button>
+        </div>
+        <div class="row2">
+          <div class="seg" id="aspect"><button data-a="9:16">9:16 reel</button><button data-a="1:1">1:1 square</button><button data-a="16:9">16:9 wide</button></div>
+        </div>
+        <div class="actions"><button class="btn" data-next="sound">Now the sound</button></div>
+      </section>
+
+      <section class="view" id="v-sound">
+        <div class="eyebrow">05 · Sound</div>
+        <h2>Pick a music bed</h2>
+        <p class="lede">The bed dips whenever you talk and comes back up in the gaps. Use the same one across your videos and people start to recognise them.</p>
+        <div class="beds" id="beds"></div>
+        <div class="card sliders">
+          <label>Music level <input type="range" id="bedGain" min="0.12" max="0.6" step="0.02" value="0.32"></label>
+          <label class="toggle"><input type="checkbox" id="sfxOn" checked> Sound effects on cards and big words</label>
+          <div class="pads" id="pads"></div>
+        </div>
+        <div class="actions"><button class="btn" data-next="export">Ready to export</button></div>
+      </section>
+
+      <section class="view" id="v-export">
+        <div class="eyebrow">06 · Export</div>
+        <h2 id="expTitle">Let's make the video</h2>
+        <p class="lede" id="expLede">Birch applies the plan, lays the captions and music in, and renders a full-quality file.</p>
+        <div class="summary" id="summary"></div>
+        <div class="actions"><button class="btn" id="render">Render it</button><button class="btn soft" id="draft">Quick preview first</button></div>
+        <div class="bigbar" id="expBarWrap" hidden><i id="expBar"></i></div>
+        <p class="lede mono" id="expNote" hidden></p>
+        <p class="err" id="expErr"></p>
+        <div class="result" id="result">
+          <video id="outVid" controls playsinline></video>
+          <div>
+            <h3 style="font-size:24px">Done, and it looks good.</h3>
+            <p class="lede">Watch it through once before you post. If something's off, go back to any step and render again.</p>
+            <div class="actions"><a class="btn" id="dl" download>Download the video</a><button class="btn soft" id="again">Start another clip</button></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var $ = function(s){ return document.querySelector(s); }, $$ = function(s){ return [].slice.call(document.querySelectorAll(s)); };
+  var api = {
+    get: function(u){ return fetch(u).then(function(r){ return r.json(); }); },
+    post: function(u, b){ return fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(function(r){ return r.json(); }); }
+  };
+  var state = { id: null, project: null, beats: [], format: null, formatPicked: false, appliedFormat: null, formats: [], direction: null, edited: false, style: 'auto', aspect: '9:16', bed: 'speech', bedGain: 0.32, sfx: true, reached: 'drop', beds: [] };
+  var order = ['drop', 'cut', 'plan', 'look', 'sound', 'export'];
+  var faces = { drop: ['/birch/hero-cut.webp', 'Hand me a clip.'], work: ['/birch/chew-cut.webp', 'Om nom, chewing through the dead air.'], cut: ['/birch/chew-cut.webp', 'Here\'s what I took out. Click a word if I got it wrong.'],
+    plan: ['/birch/plan-cut.webp', 'I sketched a plan. Cross out whatever you don\'t like.'], look: ['/birch/phone-cut.webp', 'I marked the format I\'d use. Your call.'],
+    sound: ['/birch/music-cut.webp', 'This is my favourite part.'], export: ['/birch/avatar-cut.webp', 'Ready when you are.'], done: ['/birch/sleep-cut.webp', 'All cut. Nap time.'] };
+
+  window.addEventListener('focus', function(){ if ($('#v-setup').classList.contains('on')) loadSetup(); });
+  function toast(msg){ var t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(function(){ t.classList.remove('on'); }, 2400); }
+  function fmt(s){ s = Math.max(0, s || 0); return s >= 60 ? Math.floor(s / 60) + 'm ' + String(Math.round(s % 60)).padStart(2, '0') + 's' : s.toFixed(1) + 's'; }
+  function mascot(key, chomp){
+    var f = faces[key] || faces.drop, img = $('#birchImg');
+    if (img.getAttribute('src') !== f[0]){ img.style.opacity = 0; setTimeout(function(){ img.src = f[0]; img.style.opacity = 1; }, 160); }
+    img.style.transition = 'opacity .16s';
+    $('#bubble').textContent = f[1];
+    $('#birch').classList.toggle('chomp', !!chomp);
+    var sun = $('#sun'); sun.style.transform = 'scale(.9)'; setTimeout(function(){ sun.style.transform = 'scale(1)'; }, 120);
+  }
+  function show(view){
+    $$('.view').forEach(function(v){ v.classList.remove('on'); });
+    $('#v-' + view).classList.add('on');
+    $('.panel').scrollTop = 0;
+    if (order.indexOf(view) > order.indexOf(state.reached)) state.reached = view;
+    $$('#rail button').forEach(function(b){
+      var g = b.dataset.go, i = order.indexOf(g);
+      b.classList.toggle('on', g === view);
+      b.disabled = view === 'setup' || (!state.id ? g !== 'drop' : i > order.indexOf(state.reached));
+      b.classList.toggle('done', i < order.indexOf(view));
+    });
+    if (view !== 'work' && view !== 'setup') mascot(view);
+    if (view === 'cut') loadCut();
+    if (view === 'plan' && !state.beats.length) draftBeats();
+    if (view === 'plan'){ renderBoard(); if (!state.stats || !state.stats.times) stats(); readClip(); }
+    if (view === 'look') loadFormats();
+    if (view === 'sound') loadBeds();
+    if (view === 'export') summary();
+    save();
+  }
+  function save(){ if (!state.id) return; try { localStorage.setItem('birch:' + state.id, JSON.stringify({ beats: state.beats, format: state.format, formatPicked: state.formatPicked, appliedFormat: state.appliedFormat, edited: state.edited, style: state.style, aspect: state.aspect, bed: state.bed, bedGain: state.bedGain, sfx: state.sfx, reached: state.reached, who: $('#who').value, role: $('#role').value, added: state.added || [] })); localStorage.setItem('birch:last', state.id); } catch (e) {} }
+  function restore(id){ try { var s = JSON.parse(localStorage.getItem('birch:' + id) || 'null'); if (!s) return; Object.assign(state, { beats: s.beats || [], format: s.format || null, formatPicked: !!s.formatPicked, appliedFormat: s.appliedFormat || null, edited: !!s.edited, style: s.style || 'auto', aspect: s.aspect || '9:16', bed: s.bed || 'speech', bedGain: s.bedGain || .32, sfx: s.sfx !== false, reached: s.reached || 'cut', added: s.added || [] }); $('#who').value = s.who || ''; $('#role').value = s.role || ''; } catch (e) {} }
+
+  $$('#rail button').forEach(function(b){ b.addEventListener('click', function(){ if (!b.disabled) show(b.dataset.go); }); });
+  $$('[data-next]').forEach(function(b){ b.addEventListener('click', function(){ state.reached = order[Math.max(order.indexOf(state.reached), order.indexOf(b.dataset.next))]; show(b.dataset.next); }); });
+  $('#home').addEventListener('click', function(){ state.id = null; state.reached = 'drop'; $('#pname').textContent = ''; loadRecent(); show('drop'); });
+  $('#again').addEventListener('click', function(){ $('#home').click(); });
+
+  /* ---------- drop + recent ---------- */
+  var drop = $('#drop'), file = $('#file');
+  ['dragenter', 'dragover'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function(ev){ var f = ev.dataTransfer.files[0]; if (f) upload(f); });
+  file.addEventListener('change', function(){ if (file.files[0]) upload(file.files[0]); });
+
+  function loadRecent(){
+    api.get('/api/projects').then(function(list){
+      var g = $('#recent'); g.innerHTML = '';
+      list = (list || []).filter(function(p){ return p.words; }).slice(0, 12);
+      $('#recentWrap').hidden = !list.length;
+      list.forEach(function(p){
+        var b = document.createElement('button'); b.className = 'proj';
+        b.innerHTML = '<div class="th" style="background-image:url(/api/project/thumb?id=' + encodeURIComponent(p.id) + ')"></div><div class="meta"><b></b><span>' + fmt(p.duration) + '</span></div>';
+        b.querySelector('b').textContent = p.name || 'Untitled';
+        b.addEventListener('click', function(){ open(p.id); });
+        g.appendChild(b);
+      });
+    }).catch(function(){ $('#recentWrap').hidden = true; });
+  }
+  function open(id){
+    state = Object.assign(state, { id: id, beats: [], reached: 'cut', added: [], format: null, formatPicked: false, appliedFormat: null, direction: null, edited: false, style: 'auto' }); $('#who').value = ''; $('#role').value = '';
+    restore(id);
+    api.get('/api/project?id=' + encodeURIComponent(id)).then(function(m){ state.project = m; $('#pname').textContent = m.name || ''; show(state.reached === 'drop' ? 'cut' : state.reached); });
+  }
+
+  function upload(f){
+    show('work'); mascot('work', true);
+    $('#workTitle').textContent = 'Birch is going through your clip'; $('#workErr').classList.remove('on');
+    var x = new XMLHttpRequest();
+    x.open('POST', '/api/import'); x.setRequestHeader('x-filename', encodeURIComponent(f.name));
+    x.upload.onprogress = function(e){ if (e.lengthComputable) setWork('copying', Math.round(e.loaded / e.total * 100)); };
+    x.onload = function(){ try { var r = JSON.parse(x.responseText); if (!r.id) throw new Error(r.error || 'Upload failed'); state.id = r.id; state.beats = []; state.reached = 'work'; poll(); } catch (e) { workError(e.message); } };
+    x.onerror = function(){ workError('The upload didn\'t reach Birch. Is the server running?'); };
+    x.send(f);
+  }
+  function setWork(stage, pct, note){
+    var names = ['copying', 'extracting', 'transcribing', 'done'], i = names.indexOf(stage);
+    $$('#workSteps span').forEach(function(s, j){ s.classList.toggle('on', j === i); s.classList.toggle('done', j < i); });
+    var base = [0, 15, 25, 100][Math.max(0, i)], span = [15, 10, 75, 0][Math.max(0, i)];
+    $('#workBar').style.width = Math.min(100, base + span * (pct || 0) / 100) + '%';
+    if (note) $('#workNote').textContent = note;
+  }
+  function workError(msg){ var e = $('#workErr'); e.textContent = msg; e.classList.add('on'); mascot('drop'); $('#bubble').textContent = 'Something went wrong on my end.'; }
+  function poll(){
+    api.get('/api/job?id=' + encodeURIComponent(state.id)).then(function(j){
+      if (j.stage === 'error') return workError(j.error || 'Birch couldn\'t read that clip.');
+      setWork(j.stage === 'reading' ? 'copying' : j.stage, j.pct, j.note);
+      if (j.stage === 'done'){ setWork('done', 100); setTimeout(function(){ open(state.id); }, 500); return; }
+      setTimeout(poll, 900);
+    }).catch(function(){ setTimeout(poll, 1500); });
+  }
+
+  /* ---------- cut ---------- */
+  function loadCut(){
+    api.get('/api/project?id=' + encodeURIComponent(state.id)).then(function(m){
+      state.project = m;
+      var v = $('#srcVid'); if (!v.src || v.dataset.id !== state.id){ v.src = '/media/source?id=' + encodeURIComponent(state.id); v.dataset.id = state.id; }
+      renderWords(); stats();
+    });
+  }
+  function stats(){
+    api.get('/api/birch/stats?id=' + encodeURIComponent(state.id)).then(function(s){
+      $('#sSrc').textContent = fmt(s.source); $('#sKept').textContent = fmt(s.kept);
+      $('#sPause').textContent = s.pauses; $('#sRetake').textContent = s.retakes;
+      state.stats = s;
+      if ($('#v-plan').classList.contains('on')) renderBoard();
+    });
+  }
+  function renderWords(){
+    var box = $('#words'), m = state.project, words = m.words || [];
+    box.innerHTML = '<div class="hint">click a word to cut it or bring it back · orange tags are pauses Birch removed</div>';
+    var sil = (m.silences || []).filter(function(s){ return s.end - s.start >= 0.5; }), si = 0;
+    words.forEach(function(w, i){
+      while (si < sil.length && sil[si].start < w.start){ if (i > 0){ var g = document.createElement('span'); g.className = 'gap'; g.textContent = (sil[si].end - sil[si].start).toFixed(1) + 's'; box.appendChild(g); } si++; }
+      var b = document.createElement('button'); b.className = 'w' + (w.keep === false ? ' cut' : '') + (w.retake ? ' retake' : ''); b.textContent = w.text;
+      b.title = w.retake ? 'a repeated take' : w.filler ? 'a filler word' : '';
+      b.addEventListener('click', function(){
+        w.keep = w.keep === false; b.classList.toggle('cut', w.keep === false);
+        var keeps = {}; keeps[i] = w.keep; api.post('/api/keep', { id: state.id, keeps: keeps }).then(stats);
+      });
+      b.addEventListener('dblclick', function(){ $('#srcVid').currentTime = w.start; $('#srcVid').play(); });
+      box.appendChild(b); box.appendChild(document.createTextNode(' '));
+    });
+  }
+
+  /* ---------- plan ---------- */
+  var STOP = new Set(('the a an and or but so of to in on at for with from by as is are was were be been being it its this that these those i you he she we they me him her us them my your his our their ' +
+    'not no yes just really very actually basically like then than there here what when where who how why which would could should can will do does did have has had get got going gonna about into ' +
+    'out up down over more most some any all one two also well right okay yeah um uh myself yourself himself herself ourselves themselves something someone everything everyone anything thing things ' +
+    'want wanted know think thought said says say tell told make made take took give gave come came went goes way lot kind sort really because while still even ever much many every other another ' +
+    'today instead maybe probably always never sometimes little great good better best need needs being where whether through during before after again against between').split(' '));
+  function draftBeats(){
+    var m = state.project || {}, words = m.words || [], beats = [];
+    if (!words.length){ state.beats = []; return; }
+    beats.push({ type: 'card', word: firstKept(words, 0), text: '', on: true });
+    var dur = words[words.length - 1].end || 30, want = Math.max(2, Math.min(7, Math.round(dur / 10))), picks = [];
+    words.forEach(function(w, i){
+      if (w.keep === false) return;
+      var raw = w.text, bare = raw.toLowerCase().replace(/[^a-z0-9']/g, '');
+      if (!bare || STOP.has(bare) || /'/.test(bare) || /n't$/.test(bare)) return;
+      if (/ly$/.test(bare) && bare.length > 5) return;                  // adverbs rarely land as a hit
+      var prev = words[i - 1], next = words[i + 1];
+      var sentenceStart = !prev || /[.!?]$/.test(prev.text);
+      var proper = /^[A-Z]/.test(raw.replace(/^["']/, '')) && !sentenceStart;
+      var acronym = /^[A-Z]{2,}$/.test(raw.replace(/[^A-Za-z]/g, ''));
+      var numeric = /\d/.test(bare);
+      var ends = /[.!?]["']?$/.test(raw);
+      var pause = next ? next.start - w.end : 1;
+      if (!proper && !acronym && !numeric && bare.length < 4) return;
+      var score = Math.min(bare.length, 9) + (ends ? 7 : 0) + (pause > .3 ? 4 : 0) + (proper ? 6 : 0) + (acronym ? 8 : 0) + (numeric ? 9 : 0);
+      picks.push({ i: i, t: w.start, score: score, text: raw.replace(/[^A-Za-z0-9'%$]/g, '') });
+    });
+    picks.sort(function(a, b){ return b.score - a.score; });
+    var chosen = [];
+    var endT = (words.filter(function(w){ return w.keep !== false; }).pop() || { end: dur }).end;
+    picks.forEach(function(p){
+      if (chosen.length >= want || p.t < 2.5 || p.t > endT - 2.5) return;          // too close to either end to land
+      if (chosen.some(function(c){ return c.text.toLowerCase() === p.text.toLowerCase(); })) return;   // one hit per word
+      if (chosen.every(function(c){ return Math.abs(c.t - p.t) > 7; })) chosen.push(p);
+    });
+    chosen.sort(function(a, b){ return a.t - b.t; }).forEach(function(c){ beats.push({ type: 'pop', word: c.i, text: c.text.toUpperCase(), on: true }); });
+    state.beats = beats; save();
+  }
+  function firstKept(words, from){ for (var i = from; i < words.length; i++) if (words[i].keep !== false) return i; return 0; }
+  function renderBoard(){
+    var box = $('#board'), words = (state.project && state.project.words) || [];
+    box.innerHTML = '';
+    if (!state.beats.length){ box.innerHTML = '<div class="empty">Nothing to put on screen yet. Draft it again once there\'s a transcript.</div>'; return; }
+    state.beats.forEach(function(bt, n){
+      var w = words[bt.word] || { start: 0 };
+      var at = state.stats && state.stats.times && state.stats.times[bt.word] != null ? state.stats.times[bt.word] : w.start;
+      var row = document.createElement('div'); row.className = 'beat' + (bt.on ? '' : ' off');
+      var label = bt.type === 'card' ? 'Name card' : bt.type === 'title' ? 'Title' : 'Big word';
+      row.innerHTML = '<span class="t">' + fmtT(at) + '</span><span class="k ' + bt.type + '">' + label + '</span><input><button class="x"></button>';
+      var inp = row.querySelector('input');
+      if (bt.type === 'card'){ inp.value = ($('#who').value || 'Name card') + ($('#role').value ? ', ' + $('#role').value : ''); inp.readOnly = true; inp.title = 'set the name and line above'; }
+      else { inp.value = bt.text; inp.addEventListener('input', function(){ bt.text = bt.type === 'title' ? inp.value : inp.value.toUpperCase(); state.edited = true; save(); }); }
+      var x = row.querySelector('.x'); x.textContent = bt.on ? 'Cross out' : 'Bring back';
+      x.addEventListener('click', function(){ bt.on = !bt.on; state.edited = true; renderBoard(); save(); });
+      box.appendChild(row);
+    });
+  }
+  function fmtT(s){ s = s || 0; return String(Math.floor(s / 60)).padStart(2, '0') + ':' + (s % 60).toFixed(1).padStart(4, '0'); }
+  $('#replan').addEventListener('click', function(){
+    state.edited = false;
+    if (state.direction){ planFromDirection(state.direction); toast('Back to Birch\'s plan'); }
+    else { draftBeats(); toast('Fresh plan drafted'); }
+    renderBoard();
+  });
+
+  /* ---------- Birch reads the clip ---------- */
+  // who is talking, which format fits, which words to throw on screen. Runs on the
+  // user's own claude CLI, and the quick plan above stays in place if that's missing.
+  function setRead(kind, head, sub){ var r = $('#read'); r.className = 'card read ' + kind; $('#readHead').textContent = head; $('#readSub').textContent = sub; }
+  function readClip(){
+    var id = state.id; if (!id) return;
+    api.get('/api/birch/direction?id=' + encodeURIComponent(id)).then(function(r){
+      if (id !== state.id) return;
+      if (r.direction) return useDirection(r.direction);
+      if (r.error && !r.running) return setRead('meh', 'Birch drafted a quick plan', 'The full read needs the claude CLI on this Mac (' + r.error + ').');
+      setRead('busy', 'Birch is reading your clip', 'working out who\'s talking and what\'s worth putting on screen');
+      if (!r.running) api.post('/api/birch/direct', { id: id });
+      clearTimeout(readClip.h); readClip.h = setTimeout(function(){ if ($('#v-plan').classList.contains('on') || $('#v-look').classList.contains('on')) readClip(); }, 2500);
+    }).catch(function(){});
+  }
+  function useDirection(d){
+    var first = !state.direction;
+    state.direction = d;
+    var sp = d.speaker || {};
+    if (sp.name && !$('#who').value){ $('#who').value = sp.name; if (!$('#role').value) $('#role').value = sp.role || ''; }
+    if (!state.formatPicked && d.format) state.format = d.format;
+    if (!state.edited && (first || !state.beats.some(function(b){ return b.type === 'pop'; }))) planFromDirection(d);
+    setRead(sp.name ? 'good' : 'meh', sp.name ? (sp.name + (sp.role ? ', ' + sp.role : '')) : 'Birch couldn\'t tell who\'s talking',
+      sp.name ? ('Where Birch got that: ' + (sp.how || 'the clip') + '. Fix it below if it\'s wrong.') : 'Nobody says a name in the clip. Type one below and the name card goes in.');
+    renderBoard(); save();
+  }
+  function planFromDirection(d){
+    var words = (state.project && state.project.words) || [];
+    var beats = [{ type: 'card', word: firstKept(words, 0), text: '', on: true }];
+    if (d.title) beats.push({ type: 'title', word: firstKept(words, 0), text: d.title, on: false });
+    (d.moments || []).forEach(function(m){ if (words[m.word] && words[m.word].keep !== false) beats.push({ type: 'pop', word: m.word, text: m.text, on: true }); });
+    if (beats.length < 3){ draftBeats(); return; }
+    state.beats = beats; save();
+  }
+  ['who', 'role'].forEach(function(k){ $('#' + k).addEventListener('input', function(){ renderBoard(); save(); }); });
+
+  /* ---------- look ---------- */
+  function loadFormats(){
+    readClip();
+    var paint = function(){
+      var box = $('#formats'); box.innerHTML = '';
+      [{ key: 'none', name: 'Just captions', what: 'Just the plan, nothing extra.' }].concat(state.formats).forEach(function(f){
+        var b = document.createElement('button'); b.className = 'fmt' + ((state.format || 'none') === f.key ? ' on' : '');
+        b.innerHTML = '<em hidden>Birch\'s pick</em><b></b><span></span>';
+        b.querySelector('b').textContent = f.name; b.querySelector('span').textContent = f.what;
+        if (state.direction && state.direction.format === f.key){ var e = b.querySelector('em'); e.hidden = false; if (state.direction.why) b.title = state.direction.why; }
+        b.addEventListener('click', function(){ state.format = f.key === 'none' ? 'none' : f.key; state.formatPicked = true; paint(); summary(); save(); });
+        box.appendChild(b);
+      });
+    };
+    if (state.formats.length) return paint();
+    api.get('/api/templates').then(function(list){ state.formats = list || []; paint(); }).catch(paint);
+  }
+  function paintLook(){ $$('.look').forEach(function(l){ l.classList.toggle('on', l.dataset.style === state.style); }); $$('#aspect button').forEach(function(b){ b.classList.toggle('on', b.dataset.a === state.aspect); }); }
+  $$('.look').forEach(function(l){ l.addEventListener('click', function(){ state.style = l.dataset.style; paintLook(); save(); }); });
+  $$('#aspect button').forEach(function(b){ b.addEventListener('click', function(){ state.aspect = b.dataset.a; paintLook(); save(); }); });
+
+  /* ---------- sound ---------- */
+  var BED_WORDS = { speech: 'soft piano and strings, no drums', street: 'mellow lo-fi with dusty drums', drive: 'a steady synth pulse' };
+  var audioEl = new Audio(), playing = null;
+  function loadBeds(){
+    api.get('/api/birch/beds').then(function(list){
+      state.beds = list || [];
+      var box = $('#beds'); box.innerHTML = '';
+      [{ name: 'none' }].concat(state.beds).forEach(function(b){
+        var el = document.createElement('button'); el.className = 'bed' + (state.bed === b.name ? ' on' : '');
+        el.innerHTML = '<b></b><span></span>' + (b.name !== 'none' ? '<span class="play" role="button">▶ Preview</span>' : '');
+        el.querySelector('b').textContent = b.name === 'none' ? 'No music' : b.name;
+        el.querySelectorAll('span')[0].textContent = b.name === 'none' ? 'just your voice and the sound effects' : (BED_WORDS[b.name] || 'a music bed');
+        el.addEventListener('click', function(ev){
+          if (ev.target.classList.contains('play')){ ev.stopPropagation(); preview(b.name, ev.target); return; }
+          state.bed = b.name; save(); $$('.bed').forEach(function(x){ x.classList.remove('on'); }); el.classList.add('on');
+        });
+        box.appendChild(el);
+      });
+    });
+    $('#bedGain').value = state.bedGain; $('#sfxOn').checked = state.sfx;
+  }
+  function preview(name, btn){
+    $$('.play').forEach(function(p){ p.classList.remove('playing'); p.textContent = '▶ Preview'; });
+    if (playing === name){ audioEl.pause(); playing = null; return; }
+    audioEl.src = '/birch/bed/' + name + '.wav'; audioEl.volume = Math.min(1, state.bedGain * 2); audioEl.currentTime = 0; audioEl.play().catch(function(){});
+    playing = name; btn.classList.add('playing'); btn.textContent = '❚❚ Playing';
+  }
+  audioEl.addEventListener('ended', function(){ playing = null; $$('.play').forEach(function(p){ p.classList.remove('playing'); p.textContent = '▶ Preview'; }); });
+  $('#bedGain').addEventListener('input', function(){ state.bedGain = +this.value; audioEl.volume = Math.min(1, state.bedGain * 2); save(); });
+  $('#sfxOn').addEventListener('change', function(){ state.sfx = this.checked; save(); });
+  ['whoosh', 'pop', 'riser_short', 'impact', 'ding'].forEach(function(n){
+    var b = document.createElement('button'); b.textContent = n.replace('_short', ''); b.addEventListener('click', function(){ var a = new Audio('/birch/sfx/' + n + '.wav'); a.play().catch(function(){}); }); $('#pads').appendChild(b);
+  });
+
+  /* ---------- export ---------- */
+  var STYLE_NAME = { auto: 'Format\'s own', minimal: 'Clean', pop: 'Loud', plate: 'Highlight', none: 'No captions' };
+  function summary(){
+    var on = state.beats.filter(function(b){ return b.on; });
+    $('#summary').innerHTML = '';
+    var fm = state.formats.filter(function(f){ return f.key === state.format; })[0];
+    [['length', state.stats ? fmt(state.stats.kept) : '…'], ['format', fm ? fm.name : 'Just captions'], ['on screen', on.length + ' moments'], ['captions', STYLE_NAME[state.style] + ' · ' + state.aspect], ['music', state.bed === 'none' ? 'none' : state.bed]].forEach(function(p){
+      var d = document.createElement('div'); d.className = 'card'; d.innerHTML = '<span></span><b></b>'; d.querySelector('span').textContent = p[0]; d.querySelector('b').textContent = p[1]; $('#summary').appendChild(d);
+    });
+    if (!state.stats) api.get('/api/birch/stats?id=' + encodeURIComponent(state.id)).then(function(s){ state.stats = s; summary(); });
+  }
+  function applyPlan(){
+    // the server drops everything Birch added before, then the plan goes on fresh
+    return api.post('/api/birch/clear', { id: state.id })
+      .then(function(){
+        return state.beats.filter(function(b){ return b.on; }).reduce(function(p, bt){
+          return p.then(function(){
+            if (bt.type === 'card'){
+              var who = $('#who').value.trim(); if (!who) return;
+              return api.post('/api/birch/namecard', { id: state.id, word: bt.word, seconds: 3, name: who, role: $('#role').value.trim() });
+            }
+            if (!bt.text) return;
+            if (bt.type === 'title') return api.post('/api/birch/title', { id: state.id, text: bt.text });
+            return api.post('/api/pop', { id: state.id, word: bt.word, seconds: 1.2, by: 'birch', pop: { kind: 'pop', text: bt.text } });
+          });
+        }, Promise.resolve());
+      }).then(save);
+  }
+  function settings(base){
+    base = base || (state.project && state.project.settings) || {};
+    var bed = state.beds.filter(function(b){ return b.name === state.bed; })[0];
+    var out = Object.assign({}, base, {
+      styleChosen: true, aspect: state.aspect, gapMax: base.gapMax ?? 0.5, normalize: true,
+      sound: { bed: bed ? bed.file : null, bedGain: state.bedGain, sfx: state.sfx }
+    });
+    // "match the format" keeps whatever caption look the format set
+    if (state.style !== 'auto' || !state.format || state.format === 'none'){
+      var st = state.style === 'auto' ? 'minimal' : state.style;
+      out.captions = st !== 'none'; out.capStyle = st === 'none' ? 'minimal' : st;
+    }
+    return out;
+  }
+  function waitTask(type, started){
+    return new Promise(function(resolve, reject){
+      (function tick(){
+        api.get('/api/tasks').then(function(ts){
+          var t = (ts || []).filter(function(x){ return x.project === state.id && x.type === type && x.started >= started - 2000; }).pop();
+          if (!t) return setTimeout(tick, 900);
+          if (t.stage === 'error') return reject(new Error(t.note || 'The format didn\'t go on'));
+          if (t.stage === 'done' || t.ended) return resolve(t);
+          $('#expNote').textContent = (t.note || 'working').toLowerCase();
+          setTimeout(tick, 900);
+        }).catch(function(){ setTimeout(tick, 1500); });
+      })();
+    });
+  }
+  function applyFormat(){
+    var f = state.format && state.format !== 'none' ? state.format : null;
+    if (f === state.appliedFormat) return Promise.resolve();
+    if (!f) return api.post('/api/birch/clear', { id: state.id, format: true }).then(function(){ state.appliedFormat = null; save(); });
+    $('#expNote').textContent = 'laying out the format';
+    var placed = state.beats.filter(function(b){ return b.on; }).map(function(b){ return b.type === 'card' ? 'a name card at the start' : b.type === 'title' ? 'a title at 0:00' : 'a big word "' + b.text + '"'; });
+    var extra = placed.length ? 'The editor already placed ' + placed.join(', ') + '. Do not add pops or titles of your own, and keep clear of those moments.' : '';
+    var started = Date.now();
+    return api.post('/api/template/apply', { id: state.id, template: f, extra: extra, planned: placed.length > 0, settingsOnly: f === 'pops' })
+      .then(function(r){ if (r.error) throw new Error(r.error); return r.task ? waitTask('edit', started) : null; })
+      .then(function(){ state.appliedFormat = f; save(); });
+  }
+  function render(draft){
+    $('#expErr').classList.remove('on'); $('#result').classList.remove('on');
+    $('#render').disabled = $('#draft').disabled = true;
+    $('#expBarWrap').hidden = false; $('#expNote').hidden = false; $('#expBar').style.width = '4%';
+    $('#expNote').textContent = 'putting the plan on screen';
+    mascot('work', true); $('#bubble').textContent = draft ? 'A quick rough version, coming up.' : 'Building the real thing.';
+    var started = Date.now();
+    // save the aspect first, so every card and word is drawn for the frame it lands in
+    api.post('/api/settings', { id: state.id, settings: settings() })
+      .then(applyFormat)
+      .then(applyPlan)
+      .then(function(){ return api.get('/api/project?id=' + encodeURIComponent(state.id)); })
+      .then(function(m){ state.project = m; return api.post('/api/render', { id: state.id, settings: settings(m.settings), draft: !!draft }); })
+      .then(function(){ watch(started, draft); })
+      .catch(function(e){ fail(e.message || 'Render didn\'t start'); });
+  }
+  function watch(started, draft){
+    api.get('/api/tasks').then(function(ts){
+      var t = (ts || []).filter(function(x){ return x.project === state.id && x.type === 'export' && x.started >= started - 2000; }).pop();
+      if (!t){ return setTimeout(function(){ watch(started, draft); }, 800); }
+      if (t.stage === 'error') return fail(t.note || t.error || 'The render failed');
+      $('#expBar').style.width = Math.max(4, Math.min(100, t.pct || 0)) + '%';
+      $('#expNote').textContent = (t.note || 'rendering').toLowerCase() + (t.pct ? ' · ' + Math.round(t.pct) + '%' : '');
+      if (t.stage === 'done' || t.ended){ return done(draft); }
+      setTimeout(function(){ watch(started, draft); }, 900);
+    }).catch(function(){ setTimeout(function(){ watch(started, draft); }, 1500); });
+  }
+  function done(draft){
+    var url = '/media/final?id=' + encodeURIComponent(state.id) + '&t=' + Date.now();
+    $('#expBar').style.width = '100%'; $('#expNote').textContent = draft ? 'preview ready' : 'finished';
+    $('#outVid').src = url; $('#dl').href = url; $('#dl').setAttribute('download', ((state.project && state.project.name) || 'birch') + (draft ? '-preview' : '') + '.mp4');
+    $('#result').classList.add('on'); $('#render').disabled = $('#draft').disabled = false;
+    $('#expTitle').textContent = draft ? 'Here\'s a quick preview' : 'Your video is ready';
+    mascot('done'); if (draft) $('#bubble').textContent = 'Rough version. Render it for the real thing.';
+    toast(draft ? 'Preview ready' : 'Video ready');
+  }
+  function fail(msg){ var e = $('#expErr'); e.textContent = msg; e.classList.add('on'); $('#render').disabled = $('#draft').disabled = false; mascot('export'); $('#bubble').textContent = 'That didn\'t work. Try again?'; }
+  $('#render').addEventListener('click', function(){ render(false); });
+  $('#draft').addEventListener('click', function(){ render(true); });
+
+  /* ---------- setup ---------- */
+  var setupState = null;
+  function paintSetup(st){
+    setupState = st;
+    Object.keys(st.steps).forEach(function(k){
+      var el = document.querySelector('.step[data-step="' + k + '"]'); if (!el) return;
+      var d = st.steps[k]; el.classList.toggle('done', !!d.done);
+      el.querySelector('.tick').textContent = d.done ? '✓' : el.dataset.n || el.querySelector('.tick').textContent;
+      if (k === 'mcp' && !d.done && !d.possible){ el.querySelector('.msg').textContent = 'needs Claude Code first'; }
+    });
+    var g = st.steps.github;
+    if (!g.done && g.suggest && !$('#ghUser').value) $('#ghUser').value = g.suggest;
+    $('#ghClick').hidden = !g.canClick || g.done;
+    if (g.done) $('#ghMsg').textContent = 'thanks, ' + g.login;
+    var left = ['tools', 'model', 'vision'].filter(function(k){ return !st.steps[k].done; });
+    $('#setupAll').hidden = st.ready || !left.length;
+    $('#setupGo').hidden = !st.ready;
+    if (st.ready) mascot('drop'), $('#bubble').textContent = 'All set. Hand me a clip.';
+  }
+  $$('.step').forEach(function(el){ el.dataset.n = el.querySelector('.tick').textContent; });
+  function loadSetup(){ return api.get('/api/birch/setup').then(function(st){ paintSetup(st); return st; }); }
+  function runStep(step){
+    var el = document.querySelector('.step[data-step="' + step + '"]'), msg = el.querySelector('.msg'), bar = el.querySelector('.bar i');
+    el.classList.add('busy'); msg.classList.remove('bad'); msg.textContent = 'starting';
+    var started = Date.now();
+    return api.post('/api/birch/setup/run', { step: step }).then(function(r){
+      return new Promise(function(resolve, reject){
+        (function tick(){
+          api.get('/api/tasks').then(function(ts){
+            var t = (ts || []).filter(function(x){ return x.id === r.task; })[0];
+            if (!t) return setTimeout(tick, 700);
+            if (t.pct != null && bar) bar.style.width = t.pct + '%';
+            if (t.note) msg.textContent = t.note;
+            if (t.stage === 'error') return reject(new Error(t.note));
+            if (t.stage === 'done') return resolve();
+            setTimeout(tick, 700);
+          }).catch(function(){ setTimeout(tick, 1200); });
+        })();
+      });
+    }).then(function(){ el.classList.remove('busy'); msg.textContent = ''; return loadSetup(); })
+      .catch(function(e){ el.classList.remove('busy'); msg.classList.add('bad'); msg.textContent = e.message; throw e; });
+  }
+  $$('[data-run]').forEach(function(b){ b.addEventListener('click', function(){ b.disabled = true; runStep(b.dataset.run).catch(function(){}).then(function(){ b.disabled = false; }); }); });
+  $$('[data-recheck]').forEach(function(b){ b.addEventListener('click', function(){ loadSetup(); }); });
+  $('#setupAll').addEventListener('click', function(){
+    var b = this; b.disabled = true; $('#setupErr').classList.remove('on');
+    ['tools', 'model', 'vision'].filter(function(k){ return !setupState.steps[k].done; })
+      .reduce(function(p, k){ return p.then(function(){ return runStep(k); }); }, Promise.resolve())
+      .catch(function(){}).then(function(){ b.disabled = false; });
+  });
+  function ghResult(r){
+    var m = $('#ghMsg'); m.classList.toggle('bad', !r.ok);
+    if (r.ok) { m.textContent = 'thanks, ' + r.login; return loadSetup(); }
+    if (r.why) m.textContent = r.why;
+    else m.textContent = [!r.starred && 'no star on veds260/birch yet', !r.following && 'not following @veds260 yet'].filter(Boolean).join(' and ') + '. GitHub can take a few seconds to show it.';
+  }
+  $('#ghCheck').addEventListener('click', function(){ $('#ghMsg').classList.remove('bad'); $('#ghMsg').textContent = 'checking'; api.post('/api/birch/setup/github', { login: $('#ghUser').value }).then(ghResult); });
+  $('#ghClick').addEventListener('click', function(){ $('#ghMsg').classList.remove('bad'); $('#ghMsg').textContent = 'starring and following'; api.post('/api/birch/setup/github', { click: true }).then(ghResult); });
+  $('#setupGo').addEventListener('click', function(){ state.reached = 'drop'; show('drop'); });
+
+  paintLook();
+  loadSetup().then(function(st){
+    if (!st.ready){ show('setup'); $('#bubble').textContent = 'Quick setup first, then we cut.'; return; }
+    loadRecent(); show('drop');
+    var want = new URLSearchParams(location.search).get('project'); if (want) open(want);
+  }).catch(function(){ loadRecent(); show('drop'); });
+})();
+</script>
+</body>
+</html>
