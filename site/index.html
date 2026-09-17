@@ -41,24 +41,25 @@ a{color:inherit}
 .btn span{display:inline-block;pointer-events:none}
 html{overflow-x:clip}
 .marquee,.wrap{overflow-x:clip}
-.picker{margin-top:30px;max-width:620px;min-width:0;width:100%}
+.picker{margin-top:34px;min-width:0;max-width:100%}
 .hero>div,.end-grid>div{min-width:0}
 .cmd{max-width:100%}
 .tabs{display:flex;gap:18px;margin-bottom:10px}
 .tabs button{background:none;border:0;padding:0 0 5px;font:600 14px var(--body);color:var(--fg-dim);border-bottom:2px solid transparent;cursor:pointer}
 .tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--yellow)}
-.cmd{display:flex;align-items:center;gap:10px;background:var(--ink);border-radius:14px;padding:6px 6px 6px 18px;box-shadow:0 18px 40px -22px rgba(0,0,0,.6)}
-.cmd code{flex:1;min-width:0;color:#FFF8EA;font:500 14px/1.6 "Geist Mono",ui-monospace,monospace;white-space:nowrap;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+.cmd{display:inline-flex;max-width:100%;align-items:center;gap:12px;background:var(--ink);border-radius:14px;padding:6px 6px 6px 18px;box-shadow:0 18px 40px -22px rgba(0,0,0,.6)}
+.cmd code{min-width:0;color:#FFF8EA;font:500 14px/1.5 "Geist Mono",ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:8px 0}
+@media (max-width:520px){.cmd code{white-space:pre-wrap;word-break:break-word;font-size:13px}}
 .cmd code::-webkit-scrollbar{display:none}
 .copy{flex:none;border:0;border-radius:10px;background:var(--yellow);color:var(--ink);font:700 14px var(--body);padding:10px 16px;cursor:pointer}
 .copy.done{background:#2BB673;color:#fff}
 .note{margin:10px 2px 0;font-size:14.5px;color:var(--fg-dim)}
-.alt{display:inline-block;margin-top:18px;color:var(--fg);font-weight:600;font-size:15px;text-decoration:none;border-bottom:2px solid var(--line)}
+.alt{display:inline-block;margin-top:22px;color:var(--fg);font-weight:600;font-size:15px;text-decoration:none;border-bottom:2px solid var(--line)}
 .alt:hover{border-color:var(--yellow)}
-.steps3{display:grid;gap:14px;margin:26px 0 8px;counter-reset:s}
-.steps3 li{list-style:none;display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start}
+.steps3{display:grid;gap:12px;margin:24px 0 26px;padding:0;counter-reset:s}
+.steps3 li{list-style:none;display:flex;gap:14px;align-items:center}
 .steps3 li::before{counter-increment:s;content:counter(s);width:34px;height:34px;border-radius:50%;background:var(--yellow);color:var(--ink);font:800 16px var(--display,var(--body));display:grid;place-items:center}
-.steps3 b{display:block;font-size:17px}
+.steps3 b{display:block;font-size:19px;font-weight:600}
 .steps3 span{font-size:15px;color:var(--fg-dim)}
 .steps3 code,.note code{font-family:"Geist Mono",ui-monospace,monospace;background:rgba(255,255,255,.14);padding:1px 6px;border-radius:5px}
 .needs{font-size:14px;color:var(--fg-dim);margin-top:14px}
@@ -277,12 +278,11 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
   <div>
     <div class="eyebrow">Free, open source, runs on your Mac</div>
     <h1 id="headline">Hire a beaver to cut your <em>reels</em></h1>
-    <p class="lede">Drop in a clip and he gnaws out the pauses and retakes, follows your face into a vertical crop, and adds captions, big words and music. Free, and it runs on your Mac.</p>
     <div class="picker" data-picker>
-      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-cmd="curl -fsSL https://birch.video/install | sh">Terminal</button><button role="tab" aria-selected="false" data-cmd="curl -fsSL https://birch.video/install | sh && claude mcp add --scope user birch -- birch mcp">With Claude Code</button></div>
+      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-cmd="curl -fsSL https://birch.video/install | sh">Terminal</button><button role="tab" aria-selected="false" data-cmd="Set up Birch from birch.video/install">With Claude Code</button></div>
       <div class="cmd"><code data-code>curl -fsSL https://birch.video/install | sh</code><button class="copy" data-copy>Copy</button></div>
     </div>
-    <a class="alt" href="#cut">or watch him work first</a>
+
   </div>
   <div class="stage">
     <div class="sun" id="sun"></div>
@@ -414,10 +414,9 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
         <li><div><b>Finish setup in your browser</b></div></li>
         <li><div><b>Drop in a clip</b></div></li>
       </ol>
-      <div class="picker" data-picker>
+      <div class="picker" data-picker style="margin-top:0">
         <div class="cmd"><code data-code>curl -fsSL https://birch.video/install | sh</code><button class="copy" data-copy>Copy</button></div>
       </div>
-      <p class="needs">macOS and Homebrew</p>
       <a class="alt" href="https://github.com/veds260/birch">Read the code on GitHub</a>
     </div>
     <div class="media"><div class="moon"></div><img class="cut-out para" src="sleep-cut.webp" alt="Birch asleep on a stack of film canisters"><div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>z</span></div></div>
