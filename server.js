@@ -254,7 +254,7 @@ async function ingest(id) {
     setJob(id, { stage: 'transcribing', pct: 99, note: 'Finding the pauses' });
     const heard = await M.detectSilence(wav);
     setJob(id, { stage: 'transcribing', pct: 99, note: 'Lining every word up with the audio' });
-    const seated = await ALIGN.seat(words, heard, m.duration, wav, { whisper: M.WHISPER, model: M.MODEL });
+    const seated = await ALIGN.seat(words, heard, m.duration, wav, { whisper: M.whisper(), model: M.MODEL });
     m.words = seated.words;
     m.silences = ALIGN.foldBlips(heard, seated.orphans);
 
