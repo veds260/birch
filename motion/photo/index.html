@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+  {"id":"src","type":"string","label":"Image file","default":"image.jpg"},
+  {"id":"caption","type":"string","label":"Caption","default":""},
+  {"id":"credit","type":"string","label":"Credit","default":""},
+  {"id":"y","type":"number","label":"Vertical centre","default":0.3},
+  {"id":"seconds","type":"number","label":"Seconds","default":2.8}
+]'>
+<head>
+<meta charset="UTF-8" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+  #root { position: relative; width: 100%; height: 100%; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; }
+  .frame { position: absolute; left: 50%; width: 700px; background: #fff; border-radius: 30px; padding: 16px 16px 20px;
+           box-shadow: 0 40px 90px -24px rgba(0,0,0,.65); }
+  .pic { width: 100%; height: 470px; border-radius: 18px; overflow: hidden; background: #eef1f7; display: grid; place-items: center; }
+  .img { width: 100%; height: 100%; background-size: cover; background-position: 50% 35%; background-repeat: no-repeat; transform-origin: 50% 45%; }
+  .pic.contain .img { background-size: contain; background-position: center; background-origin: content-box; padding: 34px; background-color: #fff; }
+  .cap { font-size: 40px; font-weight: 750; color: #0b1440; letter-spacing: -0.015em; padding: 16px 10px 0; }
+  .credit { font-size: 19px; color: #7a819b; padding: 4px 10px 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="2.8" data-width="1080" data-height="1920">
+  <div class="frame clip" id="frame" data-start="0" data-duration="2.8"><div class="pic" id="pic"><div class="img" id="img"></div></div><div class="cap" id="cap"></div><div class="credit" id="credit"></div></div>
+</div>
+<script>
+  const v = window.__hyperframes.getVariables();
+  const dur = Number(v.seconds) || 2.8;
+  document.getElementById('root').dataset.duration = dur; document.getElementById('frame').dataset.duration = dur;
+  const frame = document.getElementById('frame');
+  frame.style.top = (Number(v.y) * 1920) + 'px';
+  const img = document.getElementById('img'); img.style.backgroundImage = `url("${v.src}")`;
+  // logos and coats of arms sit whole on white; photos fill the frame
+  if (/\.(png|svg)/i.test(v.src) || /logo|coat_of_arms|seal|emblem/i.test(v.src)) document.getElementById('pic').classList.add('contain');
+  document.getElementById('cap').textContent = v.caption;
+  if (!v.caption) document.getElementById('cap').style.display = 'none';
+  document.getElementById('credit').textContent = v.credit;
+  const tl = gsap.timeline({ paused: true });
+  gsap.set(frame, { xPercent: -50, yPercent: -50, x: 0 });
+  tl.fromTo(frame, { y: 260, rotation: 6, opacity: 0 }, { y: 0, rotation: -2, opacity: 1, duration: .55, ease: 'back.out(1.5)' }, 0);
+  tl.fromTo(img, { scale: 1.12 }, { scale: 1, duration: dur, ease: 'none' }, 0);
+  tl.to(frame, { rotation: 0, duration: dur - .9, ease: 'sine.inOut' }, .55);
+  tl.to(frame, { y: -80, opacity: 0, duration: .3, ease: 'power2.in' }, dur - .3);
+  window.__timelines['main'] = tl;
+  tl.seek(0);
+</script>
+</body>
+</html>

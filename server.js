@@ -14,6 +14,7 @@ const ALIGN = require('./lib/align');
 const VIS = require('./lib/vision');
 const TALK = require('./lib/talkers');
 const SETUP = require('./lib/setup');
+const MOTION = require('./lib/motion');
 const REVIEW = require('./lib/review');
 const FIX = require('./lib/fixwords');
 const FCP = require('./lib/fcpxml');
@@ -43,7 +44,7 @@ function headNoun(desc) {
 // Read from the vision pass at that moment; falls back to the lower third.
 // Where an overlay of a given height can sit without covering the speaker, as a
 // centre y in the output frame. Uses the same crop the renderer will make.
-function clearY(k, wordIdx, ownHeight = 0.22) {
+function clearY(k, wordIdx, ownHeight = 0.22, prefer = 'below') {
   try {
     const m = meta(k);
     const w = m.words[wordIdx] || m.words[0];
@@ -62,9 +63,11 @@ function clearY(k, wordIdx, ownHeight = 0.22) {
     const near = faces.map(f => ({ d: Math.abs(f.t - t), box: f.box })).sort((a, b) => a.d - b.d)[0];
     if (!near || near.d > 3) return 0.62;
     const [, top, , bottom] = near.box;
-    // on the chest, just under the chin, clear of the mouth
-    if (bottom + 0.05 + ownHeight < 0.9) return Math.max(0.5, bottom + 0.05 + ownHeight / 2);
-    if (top - 0.03 - ownHeight > 0.04) return top - 0.03 - ownHeight / 2;
+    // on the chest, just under the chin, clear of the mouth; a headline tries above the head first
+    const above = top - 0.03 - ownHeight > 0.04 ? top - 0.03 - ownHeight / 2 : null;
+    if (prefer === 'above' && above !== null) return above;
+    if (bottom + 0.05 + ownHeight < 0.94) return Math.max(0.5, bottom + 0.05 + ownHeight / 2);
+    if (above !== null) return above;
     return 0.8;
   } catch (e) { return 0.62; }
 }
@@ -111,7 +114,7 @@ const meta = id => JSON.parse(fs.readFileSync(mpath(id), 'utf8'));
 // Nothing owns the screen for longer than its kind is allowed. The render
 // already enforced this, but the stored value disagreed with what you saw,
 // so a tweet read dur=8 while the export showed 3.5.
-const HOLD = { pop: 1.4, hook: 3.5, card: 3.0, tweet: 3.5, image: 3.0, broll: 6.0 };
+const HOLD = { pop: 1.4, hook: 3.5, card: 3.0, tweet: 3.5, image: 3.0, broll: 6.0, motion: 4.0 };
 function capHolds(m) {
   for (const o of (m.overlays || [])) {
     const lim = (o.type === 'pop' && o.kind === 'namecard') ? HOLD.hook : (HOLD[o.type] ?? 3);
@@ -504,6 +507,27 @@ const server = http.createServer(async (req, res) => {
       if (m.direction && !force) return send(res, 200, { ok: true, direction: m.direction });
       return send(res, 200, { ok: true, task: startDirect(k) });
     }
+    // an animated insert: a real photo, a number, a headline, a website
+    if (req.method === 'POST' && p === '/api/birch/insert') {
+      const { id: k, insert } = await readJson(req);
+      if (!safeId(k)) return send(res, 404, { error: 'not found' });
+      if (!insert || !MOTION.KINDS.includes(insert.type)) return send(res, 400, { error: 'unknown insert' });
+      const m = meta(k);
+      const [W, H] = ASPECT_WH(m.settings?.aspect, m);
+      const wi = Math.max(0, Math.min((m.words || []).length - 1, Number(insert.word) || 0));
+      const tall = { photo: 0.34, site: 0.4, stat: 0.2, headline: 0.16 }[insert.type];
+      const y = clearY(k, wi, tall, insert.type === 'headline' ? 'above' : 'below');
+      try {
+        const r = await MOTION.render(insert, { W, H, y, workdir: path.join(pdir(k), 'motion') });
+        const c = meta(k); c.overlays = c.overlays || [];
+        const what = insert.term || insert.value || insert.text || insert.url || '';
+        const ov = { id: 'mo' + Date.now().toString(36), type: 'motion', kind: insert.type, file: r.file, word: wi, dur: r.seconds,
+          by: 'birch', scale: 1, x: 0, y: 0, ar: H / W, label: (insert.type + ': ' + what).slice(0, 44) };
+        c.overlays.push(ov); saveMeta(k, c);
+        return send(res, 200, { ok: true, overlay: ov, credit: r.vars.credit || null });
+      } catch (e) { return send(res, 422, { error: e.message }); }
+    }
+
     // a title over the opening seconds, tagged so a re-export replaces it
     if (req.method === 'POST' && p === '/api/birch/title') {
       const { id: k, text } = await readJson(req);

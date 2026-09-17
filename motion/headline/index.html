@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+  {"id":"text","type":"string","label":"Headline","default":"Purpose is not enough"},
+  {"id":"accent","type":"color","label":"Accent","default":"#FFD23F"},
+  {"id":"y","type":"number","label":"Vertical centre","default":0.2},
+  {"id":"seconds","type":"number","label":"Seconds","default":2.6}
+]'>
+<head>
+<meta charset="UTF-8" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+  #root { position: relative; width: 100%; height: 100%; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; }
+  .wrap { position: absolute; left: 70px; right: 70px; transform: translateY(-50%); text-align: center; }
+  .line { display: block; overflow: hidden; padding: 6px 0 10px; }
+  .w { display: inline-block; font-size: 112px; line-height: 1; font-weight: 900; letter-spacing: -0.04em; color: #fff; margin: 0 12px;
+       text-shadow: 0 10px 40px rgba(0,0,0,.45); }
+  .w.hot { color: var(--accent); }
+  .rule { height: 12px; border-radius: 6px; width: 0; margin: 14px auto 0; background: var(--accent); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="2.6" data-width="1080" data-height="1920">
+  <div class="wrap clip" id="wrap" data-start="0" data-duration="2.6"></div>
+</div>
+<script>
+  const v = window.__hyperframes.getVariables();
+  const dur = Number(v.seconds) || 2.6;
+  document.getElementById('root').dataset.duration = dur; document.getElementById('wrap').dataset.duration = dur;
+  const wrap = document.getElementById('wrap');
+  wrap.style.top = (Number(v.y) * 1920) + 'px';
+  wrap.style.setProperty('--accent', v.accent);
+  const words = String(v.text).trim().split(/\s+/);
+  // two lines at most, split near the middle; the longest word takes the accent
+  const cut = words.length > 3 ? Math.ceil(words.length / 2) : words.length;
+  const hot = words.reduce((b, w, i) => w.replace(/\W/g, '').length > words[b].replace(/\W/g, '').length ? i : b, 0);
+  [words.slice(0, cut), words.slice(cut)].filter(l => l.length).forEach((line, li) => {
+    const el = document.createElement('span'); el.className = 'line';
+    line.forEach((w, i) => { const s = document.createElement('span'); s.className = 'w' + ((li ? cut + i : i) === hot ? ' hot' : ''); s.textContent = w; el.appendChild(s); });
+    wrap.appendChild(el);
+  });
+  const rule = document.createElement('div'); rule.className = 'rule'; wrap.appendChild(rule);
+  const tl = gsap.timeline({ paused: true });
+  tl.fromTo('.w', { yPercent: 110 }, { yPercent: 0, duration: .45, ease: 'power4.out', stagger: .07 }, 0);
+  tl.to(rule, { width: 220, duration: .4, ease: 'power3.out' }, .3);
+  tl.to('.w', { yPercent: -110, duration: .3, ease: 'power3.in', stagger: .03 }, dur - .38);
+  tl.to(rule, { width: 0, duration: .25, ease: 'power2.in' }, dur - .3);
+  window.__timelines['main'] = tl;
+  tl.seek(0);
+</script>
+</body>
+</html>

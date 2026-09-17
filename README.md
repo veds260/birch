@@ -41,6 +41,7 @@ Then tell Claude something like "cut ~/Movies/talk.mov into a vertical reel" and
 - **Drops retakes and stumbles.** Say a line more than once and it keeps the last take. A stumble like "that that" loses one of them.
 - **Follows whoever is talking.** It reads lip movement against the audio, so in a wide shot it finds the person at the podium and not the biggest face in the crowd. When a 16:9 clip becomes 9:16 the crop stays on them, and captions move out of their way.
 - **Knows who's talking when the clip tells it.** A spoken intro, a name on screen or the file name is enough. It never guesses from a face.
+- **Adds animated inserts.** When the speaker names a company, person or place, a real photo from Wikipedia slides in with its credit. A number they say counts up, a website they mention shows up as a live screenshot in a browser window, and the main idea can land as a kinetic headline. They're HTML animations rendered on your Mac with [HyperFrames](https://github.com/heygen-com/hyperframes), and the templates are in `motion/` if you want to change them.
 - **Picks a format.** Big word pops, split screen, numbered list, picture in picture, loud captions, handwritten, comment reply, story, or one big jolt. Birch marks the one it would use and you can change it.
 
 ## Code layout
@@ -54,6 +55,8 @@ lib/talkers.js     finds the speaker from mouth movement
 lib/director.js    asks Claude who is talking and what goes on screen
 lib/setup.js       the setup page's checks and installs
 lib/mcp.js         the MCP tools
+lib/motion.js      renders the animated inserts
+motion/            the insert templates, plain HTML and GSAP
 tools/*.swift      Vision passes: faces and text, lips, person mask
 public/birch/      the app
 site/              the landing page

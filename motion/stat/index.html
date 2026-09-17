@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+  {"id":"value","type":"string","label":"Number","default":"90%"},
+  {"id":"label","type":"string","label":"Label","default":"of reels get skipped"},
+  {"id":"accent","type":"color","label":"Accent","default":"#FFD23F"},
+  {"id":"y","type":"number","label":"Vertical centre","default":0.62},
+  {"id":"seconds","type":"number","label":"Seconds","default":2.6}
+]'>
+<head>
+<meta charset="UTF-8" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+  #root { position: relative; width: 100%; height: 100%; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; }
+  .card { position: absolute; left: 50%; padding: 34px 56px 40px; border-radius: 34px;
+          background: rgba(11, 16, 32, .93); box-shadow: 0 30px 80px -20px rgba(0,0,0,.6); text-align: center; min-width: 560px; }
+  .num { font-size: 210px; line-height: .95; font-weight: 900; letter-spacing: -0.045em; color: #fff; font-stretch: 75%; font-variant-numeric: tabular-nums; }
+  .bar { height: 12px; border-radius: 6px; margin: 18px auto 20px; width: 0; }
+  .label { font-size: 46px; font-weight: 650; color: rgba(255,255,255,.88); letter-spacing: -0.01em; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="2.6" data-width="1080" data-height="1920">
+  <div class="card clip" id="card" data-start="0" data-duration="2.6"><div class="num" id="num">0</div><div class="bar" id="bar"></div><div class="label" id="label"></div></div>
+</div>
+<script>
+  const v = window.__hyperframes.getVariables();
+  const dur = Number(v.seconds) || 2.6;
+  document.getElementById('root').dataset.duration = dur; document.getElementById('card').dataset.duration = dur;
+  const card = document.getElementById('card');
+  card.style.top = (Number(v.y) * 1920) + 'px';
+  document.getElementById('label').textContent = v.label;
+  document.getElementById('bar').style.background = v.accent;
+  // count up the digits inside the value, keeping whatever surrounds them ($, %, k, x)
+  const m = String(v.value).match(/^(\D*)([\d,.]+)(.*)$/);
+  const num = document.getElementById('num');
+  const target = m ? parseFloat(m[2].replace(/,/g, '')) : null;
+  const decimals = m && m[2].includes('.') ? m[2].split('.')[1].length : 0;
+  const fmt = n => m[1] + n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + m[3];
+  num.textContent = m ? fmt(0) : v.value;
+  const counter = { n: 0 };
+  gsap.set(card, { xPercent: -50, yPercent: -50, x: 0 });
+  const tl = gsap.timeline({ paused: true });
+  tl.fromTo(card, { scale: .7, opacity: 0, rotation: -3 }, { scale: 1, opacity: 1, rotation: 0, duration: .42, ease: 'back.out(1.8)' }, 0);
+  if (m) tl.to(counter, { n: target, duration: .9, ease: 'power3.out', onUpdate: () => { num.textContent = fmt(counter.n); } }, .12);
+  tl.to('#bar', { width: '62%', duration: .6, ease: 'power2.out' }, .35);
+  tl.fromTo('#label', { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .35, ease: 'power2.out' }, .45);
+  tl.to(card, { scale: .92, opacity: 0, duration: .25, ease: 'power2.in' }, dur - .25);
+  window.__timelines['main'] = tl;
+  tl.seek(0);
+</script>
+</body>
+</html>

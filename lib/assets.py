@@ -32,19 +32,46 @@ def search(term, limit=6):
                     "licence": meta.get("LicenseShortName", {}).get("value", "")})
     return out
 
+def lead_image(term):
+    # the Wikipedia article's own picture: a company's logo, a person's portrait, a
+    # place's best-known photo. Far more reliable than whatever a file search ranks first.
+    q = urllib.parse.quote(term)
+    try:
+        d = json.loads(get("https://en.wikipedia.org/w/api.php?action=query&format=json&redirects=1"
+                           f"&prop=pageimages&piprop=thumbnail|name&pithumbsize=1200&titles={q}") or "{}")
+    except Exception: return []
+    for p in (d.get("query", {}).get("pages") or {}).values():
+        th, name = p.get("thumbnail"), p.get("pageimage")
+        if not th or not name: continue
+        credit, licence = "", ""
+        try:
+            m = json.loads(get("https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo"
+                               f"&iiprop=extmetadata&titles=File:{urllib.parse.quote(name)}") or "{}")
+            for pg in (m.get("query", {}).get("pages") or {}).values():
+                meta = ((pg.get("imageinfo") or [{}])[0]).get("extmetadata") or {}
+                credit = meta.get("Artist", {}).get("value", "") or ""
+                licence = meta.get("LicenseShortName", {}).get("value", "") or ""
+        except Exception: pass
+        return [{"title": name, "url": th["source"], "w": th.get("width"), "h": th.get("height"), "credit": credit, "licence": licence}]
+    return []
+
+def plain(html):
+    import re
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html or "")).strip()[:80]
+
 def main():
     cfg = json.load(sys.stdin)
     term = cfg["term"]
-    hits = search(term)
+    hits = lead_image(term) or search(term)
     if not hits: 
         json.dump({"found": False, "term": term}, sys.stdout); return
-    best = max(hits, key=lambda h: (h.get("w") or 0) * (h.get("h") or 0))
+    best = hits[0] if len(hits) == 1 else max(hits, key=lambda h: (h.get("w") or 0) * (h.get("h") or 0))
     out = cfg["out"]
     r = subprocess.run(["curl", "-sSL", "--max-time", "40", "-H", f"User-Agent: {UA}",
                         "-o", out, best["url"]], capture_output=True)
     ok = os.path.exists(out) and os.path.getsize(out) > 8000
     json.dump({"found": ok, "term": term, "file": out if ok else None,
-               "title": best["title"], "credit": best["credit"], "licence": best["licence"],
+               "title": best["title"], "credit": plain(best["credit"]), "licence": best["licence"],
                "alternatives": len(hits)}, sys.stdout)
 
 main()

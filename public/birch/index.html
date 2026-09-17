@@ -137,6 +137,7 @@ button{font-family:inherit;cursor:pointer}
 .read b{display:block;font-size:15px}
 .read span{font-size:13px;color:var(--ink-dim)}
 .k.title{background:#E3E9FF;color:#1C3FD9}
+.k.insert{background:#EFE3FF;color:#6A2BD9}
 .sub{font-size:18px;margin-top:26px}
 .formats{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:12px}
 .fmt{position:relative;border:0;padding:14px 14px 16px;text-align:left;background:#fff;border-radius:16px;box-shadow:0 1px 0 var(--line);transition:transform .15s,box-shadow .15s;font:inherit;color:inherit}
@@ -260,7 +261,9 @@ input[type=range]{accent-color:var(--blue);width:180px}
             <div class="acts"><button class="btn" data-run="vision">Build</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
           <div class="card step" data-step="claude"><i class="tick">5</i><div><b>Claude Code<span class="opt">optional</span></b><p>Lets Birch name the speaker and plan the edit on your own Claude plan.</p></div>
             <div class="acts"><a class="btn soft" href="https://docs.claude.com/en/docs/claude-code/setup" target="_blank" rel="noopener">How to install</a><button class="btn soft" data-recheck>I did it</button></div><div class="msg"></div></div>
-          <div class="card step" data-step="mcp"><i class="tick">6</i><div><b>Use Birch from Claude<span class="opt">optional</span></b><p>Adds Birch to Claude Code, so you can say "cut this into a reel".</p></div>
+          <div class="card step" data-step="motion"><i class="tick">6</i><div><b>Animations<span class="opt">optional</span></b><p>Real photos, numbers and headlines that animate over your video. Rendered on your Mac with HyperFrames.</p></div>
+            <div class="acts"><button class="btn" data-run="motion">Set up</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+          <div class="card step" data-step="mcp"><i class="tick">7</i><div><b>Use Birch from Claude<span class="opt">optional</span></b><p>Adds Birch to Claude Code, so you can say "cut this into a reel".</p></div>
             <div class="acts"><button class="btn" data-run="mcp">Add to Claude Code</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
         </div>
         <p class="err" id="setupErr"></p>
@@ -565,10 +568,12 @@ input[type=range]{accent-color:var(--blue);width:180px}
       var w = words[bt.word] || { start: 0 };
       var at = state.stats && state.stats.times && state.stats.times[bt.word] != null ? state.stats.times[bt.word] : w.start;
       var row = document.createElement('div'); row.className = 'beat' + (bt.on ? '' : ' off');
-      var label = bt.type === 'card' ? 'Name card' : bt.type === 'title' ? 'Title' : 'Big word';
+      var label = bt.type === 'card' ? 'Name card' : bt.type === 'title' ? 'Title' : bt.type === 'insert' ? INSERT_NAME[bt.ins.type] : 'Big word';
       row.innerHTML = '<span class="t">' + fmtT(at) + '</span><span class="k ' + bt.type + '">' + label + '</span><input><button class="x"></button>';
       var inp = row.querySelector('input');
       if (bt.type === 'card'){ inp.value = ($('#who').value || 'Name card') + ($('#role').value ? ', ' + $('#role').value : ''); inp.readOnly = true; inp.title = 'set the name and line above'; }
+      else if (bt.type === 'insert'){ inp.value = bt.text; inp.title = bt.ins.type === 'photo' ? 'the Wikipedia article to take the picture from' : '';
+        inp.addEventListener('input', function(){ bt.text = inp.value; bt.ins[INSERT_KEY[bt.ins.type]] = inp.value; state.edited = true; save(); }); }
       else { inp.value = bt.text; inp.addEventListener('input', function(){ bt.text = bt.type === 'title' ? inp.value : inp.value.toUpperCase(); state.edited = true; save(); }); }
       var x = row.querySelector('.x'); x.textContent = bt.on ? 'Cross out' : 'Bring back';
       x.addEventListener('click', function(){ bt.on = !bt.on; state.edited = true; renderBoard(); save(); });
@@ -609,11 +614,16 @@ input[type=range]{accent-color:var(--blue);width:180px}
       sp.name ? ('Where Birch got that: ' + (sp.how || 'the clip') + '. Fix it below if it\'s wrong.') : ((d.scene ? 'Birch sees: ' + d.scene + '. ' : '') + 'Nobody says a name, so type one below for the name card.'));
     renderBoard(); save();
   }
+  var INSERT_NAME = { photo: 'Photo', stat: 'Number', headline: 'Headline', site: 'Website' };
+  var INSERT_KEY = { photo: 'term', stat: 'value', headline: 'text', site: 'url' };
+  function insertText(x){ return x[INSERT_KEY[x.type]] || ''; }
   function planFromDirection(d){
     var words = (state.project && state.project.words) || [];
     var beats = [{ type: 'card', word: firstKept(words, 0), text: '', on: true }];
     if (d.title) beats.push({ type: 'title', word: firstKept(words, 0), text: d.title, on: false });
     (d.moments || []).forEach(function(m){ if (words[m.word] && words[m.word].keep !== false) beats.push({ type: 'pop', word: m.word, text: m.text, on: true }); });
+    (d.inserts || []).forEach(function(x){ if (words[x.word] && words[x.word].keep !== false) beats.push({ type: 'insert', word: x.word, ins: x, text: insertText(x), on: true }); });
+    beats.sort(function(a, b){ return a.type === 'card' ? -1 : b.type === 'card' ? 1 : (words[a.word] || {}).start - (words[b.word] || {}).start; });
     if (beats.length < 3){ draftBeats(); return; }
     state.beats = beats; save();
   }
@@ -697,6 +707,11 @@ input[type=range]{accent-color:var(--blue);width:180px}
             }
             if (!bt.text) return;
             if (bt.type === 'title') return api.post('/api/birch/title', { id: state.id, text: bt.text });
+            if (bt.type === 'insert'){
+              $('#expNote').textContent = 'animating ' + INSERT_NAME[bt.ins.type].toLowerCase() + ': ' + bt.text;
+              return api.post('/api/birch/insert', { id: state.id, insert: Object.assign({}, bt.ins, { word: bt.word }) })
+                .then(function(r){ if (r.error) toast('Skipped ' + INSERT_NAME[bt.ins.type].toLowerCase() + ': ' + r.error); });
+            }
             return api.post('/api/pop', { id: state.id, word: bt.word, seconds: 1.2, by: 'birch', pop: { kind: 'pop', text: bt.text, look: wordLook() } });
           });
         }, Promise.resolve());
@@ -737,7 +752,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
     if (f === state.appliedFormat) return Promise.resolve();
     if (!f) return api.post('/api/birch/clear', { id: state.id, format: true }).then(function(){ state.appliedFormat = null; save(); });
     $('#expNote').textContent = 'laying out the format';
-    var placed = state.beats.filter(function(b){ return b.on; }).map(function(b){ return b.type === 'card' ? 'a name card at the start' : b.type === 'title' ? 'a title at 0:00' : 'a big word "' + b.text + '"'; });
+    var placed = state.beats.filter(function(b){ return b.on; }).map(function(b){ return b.type === 'card' ? 'a name card at the start' : b.type === 'title' ? 'a title at 0:00' : b.type === 'insert' ? 'an animated ' + INSERT_NAME[b.ins.type].toLowerCase() + ' of ' + b.text : 'a big word "' + b.text + '"'; });
     var extra = placed.length ? 'The editor already placed ' + placed.join(', ') + '. Do not add pops or titles of your own, and keep clear of those moments.' : '';
     var started = Date.now();
     return api.post('/api/template/apply', { id: state.id, template: f, extra: extra, planned: placed.length > 0, settingsOnly: f === 'pops' })

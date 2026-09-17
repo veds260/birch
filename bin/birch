@@ -14,10 +14,10 @@ const PORT = Number(process.env.BIRCH_PORT) || 8796;
 const BASE = `http://127.0.0.1:${PORT}`;
 const LOG = path.join(ROOT, 'server.log');
 
-function request(method, p, body) {
+function request(method, p, body, timeout = 30000) {
   return new Promise((resolve, reject) => {
     const data = body === undefined ? null : Buffer.from(JSON.stringify(body));
-    const req = http.request(BASE + p, { method, headers: data ? { 'Content-Type': 'application/json', 'Content-Length': data.length } : {}, timeout: 30000 }, res => {
+    const req = http.request(BASE + p, { method, headers: data ? { 'Content-Type': 'application/json', 'Content-Length': data.length } : {}, timeout }, res => {
       let out = ''; res.on('data', d => out += d);
       res.on('end', () => { try { resolve({ status: res.statusCode, json: JSON.parse(out) }); } catch { resolve({ status: res.statusCode, json: null }); } });
     });
