@@ -99,6 +99,10 @@ def draw(cfg, st, words, active, scale, path, jitter, pos=None):
     block_h = lh * len(lines) + gap * (len(lines) - 1)
     y0 = place_y(st["place"], H, block_h, float(cfg.get("bottom", .14)), jitter)
     xshift = 0
+    if pos and "top" in pos:
+        # fixed for the whole video: the first line always starts at the same height
+        y0 = int(H * float(pos["top"]))
+        y0 = max(int(H * .04), min(H - block_h - int(H * .04), y0))
     if pos and "cy" in pos:
         # dynamic mode: this line goes where the face is not
         y0 = int(H * float(pos["cy"]) - block_h / 2)

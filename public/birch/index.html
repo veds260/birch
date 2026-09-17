@@ -318,7 +318,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
         <p class="lede">Birch drafted this from your transcript. Cross out anything you don't want or fix any word. Only what's on this list goes into the export.</p>
         <div class="card read busy" id="read"><i class="dot"></i><div><b id="readHead">Birch is reading your clip</b><span id="readSub">working out who's talking and what's worth putting on screen</span></div></div>
         <div class="name">
-          <div class="field"><label for="who">Who's talking, for the name card</label><input id="who" placeholder="e.g. Maya Chen"></div>
+          <div class="field"><label for="who">Who's talking</label><input id="who" placeholder="e.g. Maya Chen"></div>
           <div class="field"><label for="role">One line under the name</label><input id="role" placeholder="e.g. founder, Northwind"></div>
         </div>
         <div class="card board" id="board"></div>
@@ -530,7 +530,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
   function draftBeats(){
     var m = state.project || {}, words = m.words || [], beats = [];
     if (!words.length){ state.beats = []; return; }
-    beats.push({ type: 'card', word: firstKept(words, 0), text: '', on: true });
+    beats.push({ type: 'card', word: firstKept(words, 0), text: '', on: false });
     var dur = words[words.length - 1].end || 30, want = Math.max(2, Math.min(7, Math.round(dur / 10))), picks = [];
     words.forEach(function(w, i){
       if (w.keep === false) return;
@@ -611,7 +611,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
     if (!state.formatPicked && d.format) state.format = d.format;
     if (!state.edited && (first || !state.beats.some(function(b){ return b.type === 'pop'; }))) planFromDirection(d);
     setRead(sp.name ? 'good' : 'meh', sp.name ? (sp.name + (sp.role ? ', ' + sp.role : '')) : 'Birch couldn\'t tell who\'s talking',
-      sp.name ? ('Where Birch got that: ' + (sp.how || 'the clip') + '. Fix it below if it\'s wrong.') : ((d.scene ? 'Birch sees: ' + d.scene + '. ' : '') + 'Nobody says a name, so type one below for the name card.'));
+      sp.name ? ('Where Birch got that: ' + (sp.how || 'the clip') + '. Fix it below if it\'s wrong.') : ((d.scene ? 'Birch sees: ' + d.scene + '. ' : '') + 'Nobody says a name in the clip.'));
     renderBoard(); save();
   }
   var INSERT_NAME = { photo: 'Photo', stat: 'Number', headline: 'Headline', site: 'Website' };
@@ -619,7 +619,8 @@ input[type=range]{accent-color:var(--blue);width:180px}
   function insertText(x){ return x[INSERT_KEY[x.type]] || ''; }
   function planFromDirection(d){
     var words = (state.project && state.project.words) || [];
-    var beats = [{ type: 'card', word: firstKept(words, 0), text: '', on: true }];
+    // reels don't label people, so the card is only on when Birch says the clip needs one
+    var beats = [{ type: 'card', word: firstKept(words, 0), text: '', on: !!d.nameCard }];
     if (d.title) beats.push({ type: 'title', word: firstKept(words, 0), text: d.title, on: false });
     (d.moments || []).forEach(function(m){ if (words[m.word] && words[m.word].keep !== false) beats.push({ type: 'pop', word: m.word, text: m.text, on: true }); });
     (d.inserts || []).forEach(function(x){ if (words[x.word] && words[x.word].keep !== false) beats.push({ type: 'insert', word: x.word, ins: x, text: insertText(x), on: true }); });
