@@ -191,6 +191,13 @@ input[type=range]{accent-color:var(--blue);width:180px}
 .result{margin-top:22px;display:none;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:18px;align-items:start}
 .result.on{display:grid}
 .result video{width:100%;border-radius:16px;background:#0B1440;display:block}
+[hidden]{display:none!important}
+.ai-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)}
+.ai-row:first-child{border-top:0}
+.ai-row b{font-size:14.5px;min-width:150px}
+.ai-row .st{font-size:13px;color:var(--ink-dim);flex:1;min-width:140px}
+.ai-row .st.ok{color:#1E8A55;font-weight:600}
+.ai-row code{font-family:var(--mono);font-size:12.5px;background:#EEF1FA;padding:4px 8px;border-radius:7px}
 .setup{display:flex;flex-direction:column;gap:12px;margin-top:22px}
 .step{padding:18px 20px;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:14px;align-items:start}
 .step .tick{width:26px;height:26px;border-radius:50%;background:#E3E8FA;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--ink-dim);margin-top:2px}
@@ -249,7 +256,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
         <h2>Let's get Birch ready</h2>
         <p class="lede">A few things, once. Everything runs on your Mac after this.</p>
         <div class="setup">
-          <div class="card step" data-step="github"><i class="tick">1</i><div><b>Star Birch and follow me on GitHub</b><p>That's the price. Do both, type your username, and Birch checks.</p></div>
+          <div class="card step" data-step="github"><i class="tick">1</i><div><b>Star Birch and follow me on GitHub</b><p>Birch is free. To unlock it, star the repo and follow @veds260, then type your username.</p></div>
             <div class="acts"><a class="btn soft" href="https://github.com/veds260/birch" target="_blank" rel="noopener">★ Star</a><a class="btn soft" href="https://github.com/veds260" target="_blank" rel="noopener">Follow @veds260</a></div>
             <div class="more"><input id="ghUser" placeholder="your GitHub username" autocomplete="off"><button class="btn" id="ghCheck">Check</button><button class="btn soft" id="ghClick" hidden>Do both with the GitHub CLI</button></div>
             <div class="msg" id="ghMsg"></div></div>
@@ -259,12 +266,17 @@ input[type=range]{accent-color:var(--blue);width:180px}
             <div class="acts"><button class="btn" data-run="model">Download</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
           <div class="card step" data-step="vision"><i class="tick">4</i><div><b>Face tools</b><p>Built on your Mac so Birch can find who's talking.</p></div>
             <div class="acts"><button class="btn" data-run="vision">Build</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
-          <div class="card step" data-step="claude"><i class="tick">5</i><div><b>Claude Code<span class="opt">optional</span></b><p>Lets Birch name the speaker and plan the edit on your own Claude plan.</p></div>
-            <div class="acts"><a class="btn soft" href="https://docs.claude.com/en/docs/claude-code/setup" target="_blank" rel="noopener">How to install</a><button class="btn soft" data-recheck>I did it</button></div><div class="msg"></div></div>
+          <div class="card step" data-step="ai"><i class="tick">5</i><div><b>Connect Claude or ChatGPT<span class="opt">optional</span></b><p>Birch plans the edit with your own subscription. One is enough.</p></div>
+            <div class="acts"></div>
+            <div class="more" style="display:block">
+              <div class="ai-row" data-ai="claude"><b>Claude</b><span class="st"></span><code hidden>npm install -g @anthropic-ai/claude-code</code><button class="btn soft" data-ai-login hidden>Sign in</button><button class="btn soft" data-ai-test hidden>Use this</button></div>
+              <div class="ai-row" data-ai="codex"><b>ChatGPT</b><span class="st"></span><code hidden>brew install codex</code><button class="btn soft" data-ai-login hidden>Sign in</button><button class="btn soft" data-ai-test hidden>Use this</button></div>
+            </div>
+            <div class="bar"><i></i></div><div class="msg"></div></div>
           <div class="card step" data-step="motion"><i class="tick">6</i><div><b>Animations<span class="opt">optional</span></b><p>Real photos, numbers and headlines that animate over your video. Rendered on your Mac with HyperFrames.</p></div>
             <div class="acts"><button class="btn" data-run="motion">Set up</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
-          <div class="card step" data-step="mcp"><i class="tick">7</i><div><b>Use Birch from Claude<span class="opt">optional</span></b><p>Adds Birch to Claude Code, so you can say "cut this into a reel".</p></div>
-            <div class="acts"><button class="btn" data-run="mcp">Add to Claude Code</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+          <div class="card step" data-step="mcp"><i class="tick">7</i><div><b>Use Birch from Claude or ChatGPT<span class="opt">optional</span></b><p>Adds Birch to Claude Code and Codex, so you can say "cut this into a reel".</p></div>
+            <div class="acts"><button class="btn" data-run="mcp">Add Birch</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
         </div>
         <p class="err" id="setupErr"></p>
         <div class="actions"><button class="btn" id="setupAll">Set up the rest</button><button class="btn soft" id="setupGo" hidden>Start cutting</button></div>
@@ -369,7 +381,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
         <div class="result" id="result">
           <video id="outVid" controls playsinline></video>
           <div>
-            <h3 style="font-size:24px">Done, and it looks good.</h3>
+            <h3 style="font-size:24px" id="doneHead">Done, and it looks good.</h3>
             <p class="lede">Watch it through once before you post. If something's off, go back to any step and render again.</p>
             <div class="actions"><a class="btn" id="dl" download>Download the video</a><button class="btn soft" id="again">Start another clip</button></div>
           </div>
@@ -597,7 +609,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
     api.get('/api/birch/direction?id=' + encodeURIComponent(id)).then(function(r){
       if (id !== state.id) return;
       if (r.direction) return useDirection(r.direction);
-      if (r.error && !r.running) return setRead('meh', 'Birch drafted a quick plan', 'The full read needs the claude CLI on this Mac (' + r.error + ').');
+      if (r.error && !r.running){ setRead('meh', 'Birch drafted a quick plan', r.error + ' '); var a = document.createElement('a'); a.href = '?setup'; a.textContent = 'Connect Claude or ChatGPT'; $('#readSub').appendChild(a); return; }
       setRead('busy', 'Birch is reading your clip', 'working out who\'s talking and what\'s worth putting on screen');
       if (!r.running) api.post('/api/birch/direct', { id: id });
       clearTimeout(readClip.h); readClip.h = setTimeout(function(){ if ($('#v-plan').classList.contains('on') || $('#v-look').classList.contains('on')) readClip(); }, 2500);
@@ -793,6 +805,8 @@ input[type=range]{accent-color:var(--blue);width:180px}
     $('#outVid').src = url; $('#dl').href = url; $('#dl').setAttribute('download', ((state.project && state.project.name) || 'birch') + (draft ? '-preview' : '') + '.mp4');
     $('#result').classList.add('on'); $('#render').disabled = $('#draft').disabled = false;
     $('#expTitle').textContent = draft ? 'Here\'s a quick preview' : 'Your video is ready';
+    $('#expLede').textContent = draft ? 'A small, quick version to check the edit. Render it for the full-quality file.' : 'Full quality, ready to post.';
+    $('#doneHead').textContent = draft ? 'Rough cut, check the timing.' : 'Done, and it looks good.';
     mascot('done'); if (draft) $('#bubble').textContent = 'Rough version. Render it for the real thing.';
     toast(draft ? 'Preview ready' : 'Video ready');
   }
@@ -808,7 +822,17 @@ input[type=range]{accent-color:var(--blue);width:180px}
       var el = document.querySelector('.step[data-step="' + k + '"]'); if (!el) return;
       var d = st.steps[k]; el.classList.toggle('done', !!d.done);
       el.querySelector('.tick').textContent = d.done ? '✓' : el.dataset.n || el.querySelector('.tick').textContent;
-      if (k === 'mcp' && !d.done && !d.possible){ el.querySelector('.msg').textContent = 'needs Claude Code first'; }
+      if (k === 'mcp' && !d.done && !d.possible){ el.querySelector('.msg').textContent = 'needs Claude Code or Codex first'; }
+    });
+    var ai = st.steps.ai;
+    ['claude', 'codex'].forEach(function(w){
+      var row = document.querySelector('[data-ai="' + w + '"]'), d = ai[w], stt = row.querySelector('.st');
+      var active = ai.active === w;
+      stt.className = 'st' + (d.loggedIn ? ' ok' : '');
+      stt.textContent = !d.installed ? 'not installed' : d.loggedIn ? (active ? 'connected, ' : 'signed in, ') + (d.plan || 'ready') : d.expired ? 'sign-in expired' : 'installed, not signed in';
+      row.querySelector('code').hidden = d.installed;
+      row.querySelector('[data-ai-login]').hidden = !d.installed || d.loggedIn;
+      row.querySelector('[data-ai-test]').hidden = !d.loggedIn || active;
     });
     var g = st.steps.github;
     if (!g.done && g.suggest && !$('#ghUser').value) $('#ghUser').value = g.suggest;
@@ -821,8 +845,15 @@ input[type=range]{accent-color:var(--blue);width:180px}
   }
   $$('.step').forEach(function(el){ el.dataset.n = el.querySelector('.tick').textContent; });
   function loadSetup(){ return api.get('/api/birch/setup').then(function(st){ paintSetup(st); return st; }); }
-  function runStep(step){
-    var el = document.querySelector('.step[data-step="' + step + '"]'), msg = el.querySelector('.msg'), bar = el.querySelector('.bar i');
+  function setMsg(el, text){
+    el.textContent = '';
+    String(text).split(/(https:\/\/[^\s)]+)/).forEach(function(part){
+      if (/^https:\/\//.test(part)){ var a = document.createElement('a'); a.href = part; a.target = '_blank'; a.rel = 'noopener'; a.textContent = part.replace(/^https:\/\//, ''); el.appendChild(a); }
+      else el.appendChild(document.createTextNode(part));
+    });
+  }
+  function runStep(step, card){
+    var el = document.querySelector('.step[data-step="' + (card || step) + '"]'), msg = el.querySelector('.msg'), bar = el.querySelector('.bar i');
     el.classList.add('busy'); msg.classList.remove('bad'); msg.textContent = 'starting';
     var started = Date.now();
     return api.post('/api/birch/setup/run', { step: step }).then(function(r){
@@ -832,7 +863,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
             var t = (ts || []).filter(function(x){ return x.id === r.task; })[0];
             if (!t) return setTimeout(tick, 700);
             if (t.pct != null && bar) bar.style.width = t.pct + '%';
-            if (t.note) msg.textContent = t.note;
+            if (t.note) setMsg(msg, t.note);
             if (t.stage === 'error') return reject(new Error(t.note));
             if (t.stage === 'done') return resolve();
             setTimeout(tick, 700);
@@ -840,10 +871,25 @@ input[type=range]{accent-color:var(--blue);width:180px}
         })();
       });
     }).then(function(){ el.classList.remove('busy'); msg.textContent = ''; return loadSetup(); })
-      .catch(function(e){ el.classList.remove('busy'); msg.classList.add('bad'); msg.textContent = e.message; throw e; });
+      .catch(function(e){ el.classList.remove('busy'); msg.classList.add('bad'); setMsg(msg, e.message); throw e; });
   }
   $$('[data-run]').forEach(function(b){ b.addEventListener('click', function(){ b.disabled = true; runStep(b.dataset.run).catch(function(){}).then(function(){ b.disabled = false; }); }); });
-  $$('[data-recheck]').forEach(function(b){ b.addEventListener('click', function(){ loadSetup(); }); });
+  $$('[data-ai-login]').forEach(function(b){ b.addEventListener('click', function(){
+    var w = b.closest('[data-ai]').dataset.ai; b.disabled = true;
+    runStep('login-' + w, 'ai').catch(function(){}).then(function(){ b.disabled = false; });
+  }); });
+  $$('[data-ai-test]').forEach(function(b){ b.addEventListener('click', function(){
+    var w = b.closest('[data-ai]').dataset.ai; b.disabled = true;
+    runStep('test-' + w, 'ai').catch(function(){}).then(function(){ b.disabled = false; });
+  }); });
+  // a reload mid-download picks the running step back up instead of offering a second one
+  function resumeRunning(st){
+    Object.keys(st.running || {}).forEach(function(step){
+      var card = /^(login|test)-/.test(step) ? 'ai' : step;
+      var el = document.querySelector('.step[data-step="' + card + '"]');
+      if (el && !el.classList.contains('busy')) runStep(step, card).catch(function(){});
+    });
+  }
   $('#setupAll').addEventListener('click', function(){
     var b = this; b.disabled = true; $('#setupErr').classList.remove('on');
     ['tools', 'model', 'vision'].filter(function(k){ return !setupState.steps[k].done; })
@@ -862,6 +908,9 @@ input[type=range]{accent-color:var(--blue);width:180px}
 
   paintLook();
   loadSetup().then(function(st){
+    resumeRunning(st);
+    // ?setup reopens the setup page later, to connect an AI or add the optional steps
+    if (new URLSearchParams(location.search).has('setup')){ show('setup'); $('#bubble').textContent = 'Anything else to set up?'; return; }
     if (!st.ready){ show('setup'); $('#bubble').textContent = 'Quick setup first, then we cut.'; return; }
     loadRecent(); show('drop');
     var want = new URLSearchParams(location.search).get('project'); if (want) open(want);

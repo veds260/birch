@@ -4,7 +4,7 @@
 
 Birch cuts your talking videos into reels ([birch.video](https://birch.video)). Drop in a clip and he takes out the pauses and retakes, works out who's talking, puts their name on screen, throws the words they lean on up in big type and lays music underneath. You get an mp4.
 
-It runs on your Mac. Transcription is whisper.cpp, faces come from Apple's Vision framework and rendering is ffmpeg. The part that plans the edit goes through Claude Code, so it uses the Claude plan you already have. No API keys, no uploads.
+It runs on your Mac. Transcription is whisper.cpp, faces come from Apple's Vision framework and rendering is ffmpeg. The part that plans the edit goes through Claude Code or Codex, so it uses the Claude or ChatGPT plan you already have. No API keys, no uploads.
 
 ## Install
 
@@ -23,7 +23,7 @@ birch doctor           # what's set up and what isn't
 birch update           # pulls the latest version
 ```
 
-You need macOS with [Homebrew](https://brew.sh). For names and the auto plan you also need [Claude Code](https://docs.claude.com/en/docs/claude-code/setup). Without it Birch still cuts, captions and adds music.
+You need macOS with [Homebrew](https://brew.sh). For the auto plan, sign in to [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) or [Codex](https://github.com/openai/codex) from the setup page. Without either, Birch still cuts, captions and adds music.
 
 ## MCP
 
@@ -31,6 +31,7 @@ Birch ships an MCP server. The setup page has a button for this, or run:
 
 ```sh
 claude mcp add --scope user birch -- birch mcp
+codex mcp add birch -- birch mcp
 ```
 
 Then tell Claude something like "cut ~/Movies/talk.mov into a vertical reel" and it calls `birch_cut`, which runs the whole edit and hands back the file path. There's also `birch_setup`, `birch_status`, `birch_open` and `birch_projects` for checking on things.

@@ -98,9 +98,12 @@ async function main() {
     line(st.steps.tools.done, 'ffmpeg and whisper');
     line(st.steps.model.done, 'speech model');
     line(st.steps.vision.done, 'face tools');
-    line(st.steps.claude.done, 'Claude Code (optional)');
+    const ai = st.steps.ai;
+    line(ai.done, ai.done ? `AI: ${ai.active === 'claude' ? 'Claude' : 'ChatGPT'} (${ai[ai.active].plan || 'signed in'})` : 'AI: Claude or ChatGPT not connected (optional)');
+    line(st.steps.motion.done, 'animations (optional)');
     line(st.steps.mcp.done, 'Birch added to Claude Code (optional)');
     if (!st.ready) console.log(`\n  finish setup at ${BASE}/birch`);
+    else if (!ai.done || !st.steps.motion.done || !st.steps.mcp.done) console.log(`\n  the optional steps are on ${BASE}/birch`);
     return;
   }
 

@@ -14,6 +14,7 @@ const ALIGN = require('./lib/align');
 const VIS = require('./lib/vision');
 const TALK = require('./lib/talkers');
 const SETUP = require('./lib/setup');
+const setupRuns = new Map();
 const MOTION = require('./lib/motion');
 const REVIEW = require('./lib/review');
 const FIX = require('./lib/fixwords');
@@ -395,18 +396,23 @@ const server = http.createServer(async (req, res) => {
   try {
     // setup: what's missing, fix it from the browser, and the GitHub star and follow
     if (req.method === 'GET' && p === '/api/birch/ping') return send(res, 200, { birch: true, dir: ROOT, pid: process.pid });
-    if (req.method === 'GET' && p === '/api/birch/setup') return send(res, 200, await SETUP.status());
+    if (req.method === 'GET' && p === '/api/birch/setup') return send(res, 200, { ...(await SETUP.status()), running: Object.fromEntries(setupRuns) });
     if (req.method === 'POST' && p === '/api/birch/setup/github') {
       const { login, click } = await readJson(req);
       return send(res, 200, click ? await SETUP.starAndFollow() : await SETUP.checkGithub(login));
     }
     if (req.method === 'POST' && p === '/api/birch/setup/run') {
       const { step } = await readJson(req);
+      // pressing a button twice, or reloading mid-download, joins the run already going
+      const live = setupRuns.get(step);
+      if (live) return send(res, 200, { ok: true, task: live, step, joined: true });
       const tid = newTask('setup', null, 'Setup: ' + step);
+      setupRuns.set(step, tid);
       setTask(tid, { note: 'starting' });
       SETUP.run(step, (pct, note) => setTask(tid, { ...(pct != null ? { pct } : {}), ...(note ? { note: String(note).slice(0, 160) } : {}) }))
         .then(() => setTask(tid, { stage: 'done', pct: 100, ended: Date.now(), note: 'done' }))
-        .catch(e => setTask(tid, { stage: 'error', ended: Date.now(), note: e.message.slice(0, 240) }));
+        .catch(e => setTask(tid, { stage: 'error', ended: Date.now(), note: e.message.slice(0, 240) }))
+        .finally(() => setupRuns.delete(step));
       return send(res, 200, { ok: true, task: tid, step });
     }
     // nothing gets imported or rendered until the star and follow are in

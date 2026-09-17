@@ -21,12 +21,16 @@ say "Installing Birch"
 
 [ "$(uname -s)" = Darwin ] || die "Birch runs on macOS only, because it uses Apple's Vision framework to find faces."
 
-command -v git >/dev/null 2>&1 || die "git is missing. Run xcode-select --install, then run this again."
+# a fresh Mac has a git placeholder that only works once Apple's command line tools are in
+if ! xcode-select -p >/dev/null 2>&1; then
+  xcode-select --install >/dev/null 2>&1 || true
+  die "Apple's command line tools are needed first. A window just opened to install them (about 5 minutes). When it finishes, run this again."
+fi
 
 if ! command -v node >/dev/null 2>&1; then
   if command -v brew >/dev/null 2>&1; then
-    step "installing node with Homebrew"
-    brew install node >/dev/null
+    step "installing node with Homebrew, this can take a few minutes"
+    brew install node
   else
     die "Birch needs Node 18 or newer. Install Homebrew from https://brew.sh (or Node from nodejs.org), then run this again."
   fi
@@ -66,5 +70,5 @@ say "Opening Birch. The setup page walks you through the rest."
 "$DIR/bin/birch"
 
 say "Next time, just type: birch"
-step "To use it from Claude Code:  claude mcp add --scope user birch -- birch mcp"
+step "To use it from Claude Code or ChatGPT, press Add Birch on the setup page."
 printf '\n'
