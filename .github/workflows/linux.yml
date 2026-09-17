@@ -1,0 +1,59 @@
+name: Linux install and cut
+
+# Proves the whole thing works on a plain Ubuntu box, from the public installer to a
+# finished mp4: whisper built from source, faces from MediaPipe, captions in a font
+# that is not Apple's. Runs on demand and once a week.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 1'
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: System packages a newcomer is told to install
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg cmake python3-venv
+
+      - name: Install Birch the way the site says
+        env:
+          BIRCH_DIR: ${{ github.workspace }}/.birch-home
+          BIRCH_REPO: ${{ github.workspace }}
+          BIRCH_BIN_DIR: ${{ github.workspace }}/bin
+        run: |
+          mkdir -p "$BIRCH_BIN_DIR"
+          sh install.sh
+          echo "$BIRCH_BIN_DIR" >> "$GITHUB_PATH"
+
+      - name: Skip the star and follow, which needs a person
+        run: echo '{"github":"github-actions"}' > "${{ github.workspace }}/.birch-home/.birch.json"
+
+      - name: Setup steps, the same buttons the page presses
+        working-directory: ${{ github.workspace }}/.birch-home
+        run: node "${{ github.workspace }}/.github/workflows/steps.js" setup
+
+      - name: A real clip, public domain, with a face and speech
+        run: |
+          curl -sSL -o full.ogv "https://upload.wikimedia.org/wikipedia/commons/a/a5/Weekly_Address_%282009-01-24%29%2C_small.ogv"
+          ffmpeg -v error -y -ss 12 -t 40 -i full.ogv -c:v libx264 -crf 20 -c:a aac clip.mp4
+          ls -la clip.mp4
+
+      - name: Cut it and export a reel
+        run: node "${{ github.workspace }}/.github/workflows/steps.js" cut "${{ github.workspace }}/clip.mp4"
+
+      - name: Keep the result to look at
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-cut
+          path: |
+            ${{ github.workspace }}/.birch-home/server.log
+            ${{ github.workspace }}/out/
+          if-no-files-found: warn
