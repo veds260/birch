@@ -256,20 +256,20 @@ input[type=range]{accent-color:var(--blue);width:180px}
       <section class="view" id="v-setup">
         <div class="eyebrow">Setup</div>
         <h2>Let's get Birch ready</h2>
-        <p class="lede">A few things, once. Everything runs on your Mac after this.</p>
+        <p class="lede">A few things, once. Everything runs on your own machine after this.</p>
         <div class="setup">
           <div class="card step" data-step="github"><i class="tick">1</i><div><b>Star Birch and follow me on GitHub</b><p>Birch is free. To unlock it, star the repo and follow @veds260, then type your username.</p></div>
             <div class="acts"><a class="btn soft" href="https://github.com/veds260/birch" target="_blank" rel="noopener">★ Star</a><a class="btn soft" href="https://github.com/veds260" target="_blank" rel="noopener">Follow @veds260</a></div>
             <div class="more"><input id="ghUser" placeholder="your GitHub username" autocomplete="off"><button class="btn" id="ghCheck">Check</button><button class="btn soft" id="ghClick" hidden>Do both with the GitHub CLI</button></div>
             <div class="msg" id="ghMsg"></div></div>
-          <div class="card step" data-step="tools"><i class="tick">2</i><div><b>ffmpeg and whisper</b><p id="toolsWhat">They cut the video and turn speech into words. Installed with Homebrew.</p></div>
+          <div class="card step" data-step="tools"><i class="tick">2</i><div><b>ffmpeg and whisper</b><p id="toolsWhat">They cut the video and turn speech into words.</p></div>
             <div class="acts"><button class="btn" data-run="tools">Install</button></div>
             <div class="more" id="toolsCmd" hidden><code></code><button class="btn soft" type="button">Copy</button></div>
             <div class="bar"><i></i></div><div class="msg"></div></div>
-          <div class="card step" data-step="model"><i class="tick">3</i><div><b>The speech model</b><p>About 490 MB, downloaded once.</p></div>
+          <div class="card step" data-step="model"><i class="tick">3</i><div><b>The speech model</b><p id="modelWhat">About 490 MB, downloaded once.</p></div>
             <div class="acts"><button class="btn" data-run="model">Download</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
-          <div class="card step" data-step="vision"><i class="tick">4</i><div><b>Face tools</b><p>Built on your Mac so Birch can find who's talking.</p></div>
-            <div class="acts"><button class="btn" data-run="vision">Build</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+          <div class="card step" data-step="vision"><i class="tick">4</i><div><b>Face tools</b><p id="visionWhat">Built on your Mac so Birch can find who's talking.</p></div>
+            <div class="acts"><button class="btn" data-run="vision" id="visionBtn">Build</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
           <div class="card step" data-step="ai"><i class="tick">5</i><div><b>Connect Claude or ChatGPT<span class="opt">optional</span></b><p>Birch plans the edit with your own subscription. One is enough.</p></div>
             <div class="acts"></div>
             <div class="more" style="display:block">
@@ -277,7 +277,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
               <div class="ai-row" data-ai="codex"><b>ChatGPT</b><span class="st"></span><code hidden>brew install codex</code><button class="btn soft" data-ai-login hidden>Sign in</button><button class="btn soft" data-ai-test hidden>Use this</button></div>
             </div>
             <div class="bar"><i></i></div><div class="msg"></div></div>
-          <div class="card step" data-step="motion"><i class="tick">6</i><div><b>Animations<span class="opt">optional</span></b><p>Real photos, numbers and headlines that animate over your video. Rendered on your Mac with HyperFrames.</p></div>
+          <div class="card step" data-step="motion"><i class="tick">6</i><div><b>Animations<span class="opt">optional</span></b><p>Real photos, numbers and headlines that animate over your video. Rendered on your own machine with HyperFrames.</p></div>
             <div class="acts"><button class="btn" data-run="motion">Set up</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
           <div class="card step" data-step="mcp"><i class="tick">7</i><div><b>Use Birch from Claude or ChatGPT<span class="opt">optional</span></b><p>Adds Birch to Claude Code and Codex, so you can say "cut this into a reel".</p></div>
             <div class="acts"><button class="btn" data-run="mcp">Add Birch</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
@@ -289,7 +289,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
       <section class="view" id="v-drop">
         <div class="eyebrow">01 · Drop</div>
         <h2>What are we cutting today?</h2>
-        <p class="lede">Drop a talking clip in. Birch transcribes it on your Mac, finds the pauses and repeated takes, and gets a first cut ready for you to check.</p>
+        <p class="lede">Drop a talking clip in. Birch transcribes it on your own machine, finds the pauses and repeated takes, and gets a first cut ready for you to check.</p>
         <label class="drop" id="drop">
           <input type="file" id="file" accept="video/*" hidden>
           <h3>Drop a video here</h3>
@@ -305,7 +305,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
       <section class="view" id="v-work">
         <div class="eyebrow">Chewing</div>
         <h2 id="workTitle">Birch is going through your clip</h2>
-        <p class="lede" id="workNote">This part runs on your Mac, so it takes about a tenth of the clip's length.</p>
+        <p class="lede" id="workNote">This part runs on your own machine, so it takes about a tenth of the clip's length.</p>
         <div class="bigbar"><i id="workBar"></i></div>
         <div class="steps" id="workSteps"><span data-s="copying">copying</span><span data-s="extracting">pulling audio</span><span data-s="transcribing">transcribing</span><span data-s="done">first cut</span></div>
         <p class="err" id="workErr"></p>
@@ -829,8 +829,20 @@ input[type=range]{accent-color:var(--blue);width:180px}
       if (k === 'mcp' && !d.done && !d.possible){ el.querySelector('.msg').textContent = 'needs Claude Code or Codex first'; }
     });
     var t = st.steps.tools;
+    // what these steps actually do depends on the machine, so say the true thing
+    if (t.mac){
+      $('#toolsWhat').textContent = 'They cut the video and turn speech into words. Installed with Homebrew.';
+      $('#visionWhat').textContent = 'Built on your Mac so Birch can find who\'s talking.';
+    } else if (t.win){
+      $('#toolsWhat').textContent = 'They cut the video and turn speech into words. Birch downloads both into its own folder, so nothing asks for an administrator.';
+      $('#visionWhat').textContent = 'Downloaded so Birch can find who\'s talking.';
+      $('#visionBtn').textContent = 'Install';
+      $('#modelWhat').textContent = 'About 485 MB, downloaded once.';
+    } else {
+      $('#visionWhat').textContent = 'Installed so Birch can find who\'s talking.';
+      $('#visionBtn').textContent = 'Install';
+    }
     if (!t.mac){
-      $('#toolsWhat').textContent = 'They cut the video and turn speech into words.';
       var box = $('#toolsCmd');
       if (t.command && !t.done){
         box.hidden = false;
@@ -847,6 +859,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
       var active = ai.active === w;
       stt.className = 'st' + (d.loggedIn ? ' ok' : '');
       stt.textContent = !d.installed ? 'not installed' : d.loggedIn ? (active ? 'connected, ' : 'signed in, ') + (d.plan || 'ready') : d.expired ? 'sign-in expired' : 'installed, not signed in';
+      if (w === 'codex') row.querySelector('code').textContent = st.platform === 'darwin' ? 'brew install codex' : 'npm install -g @openai/codex';
       row.querySelector('code').hidden = d.installed;
       row.querySelector('[data-ai-login]').hidden = !d.installed || d.loggedIn;
       row.querySelector('[data-ai-test]').hidden = !d.loggedIn || active;

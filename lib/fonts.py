@@ -18,9 +18,16 @@ def _fc(pattern):
     except Exception:
         return None
 
+# Windows keeps everything in one folder. Segoe UI Variable is the closest thing it
+# has to SF Pro, and every install has Segoe UI Bold and Arial Bold behind it.
+WIN_FONTS = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts")
+_w = lambda *names: _first([os.path.join(WIN_FONTS, n) for n in names])
+WIN_HEAVY = _w("SegUIVar.ttf", "seguivb.ttf", "segoeuib.ttf", "arialbd.ttf", "seguisb.ttf")
+WIN_TEXT = _w("SegUIVar.ttf", "segoeui.ttf", "arial.ttf", "tahoma.ttf")
+
 # Macs have SF Pro. Elsewhere, take the heaviest grotesque that is actually installed,
 # then let fontconfig pick, then give up on anything fancy.
-LINUX_HEAVY = _first([
+LINUX_HEAVY = WIN_HEAVY or _first([
     "/usr/share/fonts/truetype/inter/Inter-Black.ttf",
     "/usr/share/fonts/opentype/inter/Inter-Black.otf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -28,7 +35,7 @@ LINUX_HEAVY = _first([
     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
     "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
 ]) or _fc("sans-serif:bold")
-LINUX_TEXT = _first([
+LINUX_TEXT = WIN_TEXT or _first([
     "/usr/share/fonts/truetype/inter/Inter-Regular.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
@@ -56,6 +63,16 @@ def load(spec, size):
         weight = ROLES.get(spec[3:], ROLES["bold"])[0]
         path = (LINUX_HEAVY if weight >= 600 else LINUX_TEXT) or FALLBACK
         f = ImageFont.truetype(path, size) if path else ImageFont.load_default()
+        # Segoe UI Variable on Windows is one file for every weight, and its default
+        # instance is far too light for a caption, so ask for the weight by name
+        try:
+            axes = f.get_variation_axes()
+            if axes:
+                f.set_variation_by_axes([min(max(weight, a["minimum"]), a["maximum"])
+                                         if (a.get("name") in (b"Weight", "Weight")) else a["default"]
+                                         for a in axes])
+        except Exception:
+            pass
         _cache[key] = f
         return f
     if isinstance(spec, str) and spec.startswith("sf:") and os.path.exists(SF):
