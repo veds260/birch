@@ -32,6 +32,9 @@ jobs:
           sh install.sh
           echo "$BIRCH_BIN_DIR" >> "$GITHUB_PATH"
 
+      - name: Hide the runner's Homebrew, a normal Linux box has none
+        run: sudo mv /home/linuxbrew /home/linuxbrew-off || true
+
       - name: Skip the star and follow, which needs a person
         run: echo '{"github":"github-actions"}' > "${{ github.workspace }}/.birch-home/.birch.json"
 
