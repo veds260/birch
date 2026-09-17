@@ -4,11 +4,13 @@ it, drawn on a transparent full frame so the renderer can lay it straight over t
 picture. Sits lower left, inside the part of the screen Instagram leaves alone."""
 import json, sys, os
 from PIL import Image, ImageDraw, ImageFont
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fonts
 
 HOME = os.path.expanduser("~")
 def pick(*p): return next((x for x in p if os.path.exists(x)), "/System/Library/Fonts/Supplemental/Arial Bold.ttf")
-HEAVY = pick(HOME + "/Library/Fonts/MikadoUltra.otf", "/System/Library/Fonts/Supplemental/Arial Black.ttf")
-BOLD = pick(HOME + "/Library/Fonts/MikadoBold.otf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf")
+HEAVY = "sf:heavy"
+BOLD = "sf:bold"
 
 def hexrgb(h, a=255): h = h.lstrip("#"); return tuple(int(h[i:i+2], 16) for i in (0, 2, 4)) + (a,)
 
@@ -21,13 +23,13 @@ def main():
     d = ImageDraw.Draw(img)
     short = min(W, H)
     fs_name = int(short * 0.074); fs_role = int(short * 0.04)
-    f_name = ImageFont.truetype(HEAVY, fs_name); f_role = ImageFont.truetype(BOLD, fs_role)
+    f_name = fonts.load(HEAVY, fs_name); f_role = fonts.load(BOLD, fs_role)
     pad_x = int(short * 0.04); pad_y = int(short * 0.028); gap = int(short * 0.01)
     maxw = int(W * 0.78) - pad_x * 2
     while d.textlength(name, font=f_name) > maxw and fs_name > 20:
-        fs_name -= 2; f_name = ImageFont.truetype(HEAVY, fs_name)
+        fs_name -= 2; f_name = fonts.load(HEAVY, fs_name)
     while role and d.textlength(role, font=f_role) > maxw and fs_role > 14:
-        fs_role -= 1; f_role = ImageFont.truetype(BOLD, fs_role)
+        fs_role -= 1; f_role = fonts.load(BOLD, fs_role)
     nb = d.textbbox((0, 0), name, font=f_name); rb = d.textbbox((0, 0), role, font=f_role) if role else (0, 0, 0, 0)
     tw = max(nb[2] - nb[0], rb[2] - rb[0]); th = (nb[3] - nb[1]) + ((rb[3] - rb[1]) + gap if role else 0)
     bar = int(short * 0.012)

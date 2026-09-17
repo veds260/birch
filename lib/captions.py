@@ -4,24 +4,19 @@ drawn here and composited as images. Word-level styles emit several frames per
 word to get the pop, which is what makes them read as alive rather than a slab."""
 import json, sys, os, random
 from PIL import Image, ImageDraw, ImageFont
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fonts
 
 import os as _os
 _HOME = _os.path.expanduser("~")
 FONTS = {
-    # Mikado Ultra is the chunky display face; Arial Black is the fallback
-    "black": next((p for p in [
-        _HOME + "/Library/Fonts/MikadoUltra.otf",
-        "/System/Library/Fonts/Supplemental/Impact.ttf",
-        "/System/Library/Fonts/Supplemental/Arial Black.ttf"] if _os.path.exists(p)),
-        "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
-    "bold":  "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    "black": "sf:heavy",
+    "bold":  "sf:bold",
     "scrawl": next((p for p in ["/System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf",
                                "/System/Library/Fonts/Supplemental/MarkerFelt.ttc"] if _os.path.exists(p)),
-                  "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
-    "sub":   next((p for p in [_HOME + "/Library/Fonts/MikadoMedium.otf",
-                               "/System/Library/Fonts/Supplemental/Arial Bold.ttf"] if _os.path.exists(p)),
-                  "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
-    "reg":   "/System/Library/Fonts/Supplemental/Arial.ttf",
+                  "sf:bold"),
+    "sub":   "sf:semi",
+    "reg":   "sf:regular",
 }
 
 # per style: font, uppercase, stroke share, active colour, plate, words per card,
@@ -59,7 +54,7 @@ STYLES = {
 
 def fnt(name, size):
     p = FONTS.get(name, FONTS["bold"])
-    return ImageFont.truetype(p if os.path.exists(p) else FONTS["bold"], max(8, int(size)))
+    return fonts.load(p, size)
 
 def place_y(place, H, block_h, bottom, jitter):
     if place == "seam":   base = H * 0.53 - block_h / 2      # where the white panel meets the speaker

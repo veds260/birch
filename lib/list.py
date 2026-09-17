@@ -3,13 +3,13 @@
 Emits one full-frame PNG per state, so it becomes a track like the captions."""
 import json, sys, os
 from PIL import Image, ImageDraw, ImageFont
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fonts
 
 HOME = os.path.expanduser("~")
 FACES = {
-  "clean":  next((p for p in [HOME + "/Library/Fonts/MikadoMedium.otf",
-                              "/System/Library/Fonts/Supplemental/Arial Bold.ttf"] if os.path.exists(p)), None),
-  "heavy":  next((p for p in [HOME + "/Library/Fonts/MikadoUltra.otf",
-                              "/System/Library/Fonts/Supplemental/Arial Black.ttf"] if os.path.exists(p)), None),
+  "clean":  "sf:medium",
+  "heavy":  "sf:heavy",
   "scrawl": next((p for p in ["/System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf",
                               "/System/Library/Fonts/Supplemental/MarkerFelt.ttc"] if os.path.exists(p)), None),
 }
@@ -26,7 +26,7 @@ def main():
     W, H = c["width"], c["height"]
     out = c["outdir"]; os.makedirs(out, exist_ok=True)
     size = int(c.get("size") or H * 0.030)
-    f = ImageFont.truetype(FACES.get(c.get("face", "clean")) or FALLBACK, size)
+    f = fonts.load(FACES.get(c.get("face", "clean")) or FALLBACK, size)
     asc, desc = f.getmetrics()
     lh = int((asc + desc) * 1.22)
     x0, y0 = int(W * float(c.get("x", 0.06))), int(H * float(c.get("y", 0.11)))

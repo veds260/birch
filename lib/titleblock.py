@@ -4,27 +4,26 @@ white line under it, pinned near the top, held static for a whole segment.
 Optionally a small stat chip with an eye icon underneath."""
 import json, sys, os
 from PIL import Image, ImageDraw, ImageFont
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fonts
 
 HOME = os.path.expanduser("~")
 def pick(*paths):
     return next((p for p in paths if os.path.exists(p)), None)
 
 FACES = {
-  "ultra":     pick(HOME + "/Library/Fonts/MikadoUltra.otf",
-                    "/System/Library/Fonts/Supplemental/Impact.ttf"),
-  "condensed": pick("/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf",
-                    HOME + "/Library/Fonts/MikadoUltra.otf"),
+  "ultra":     "sf:heavy",
+  "condensed": "sf:display",
   "rounded":   pick("/System/Library/Fonts/SFCompactRounded.ttf",
                     "/System/Library/Fonts/Supplemental/Arial Rounded Bold.ttf"),
   "serif":     pick("/System/Library/Fonts/Supplemental/Didot.ttc",
                     "/System/Library/Fonts/Supplemental/Georgia.ttf"),
   "scrawl":    pick("/System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf",
                     "/System/Library/Fonts/Supplemental/MarkerFelt.ttc"),
-  "sub":       pick(HOME + "/Library/Fonts/MikadoMedium.otf",
-                    "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+  "sub":       "sf:medium",
 }
 FALLBACK = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
-font = lambda k, s: ImageFont.truetype(FACES.get(k) or FALLBACK, max(8, int(s)))
+font = lambda k, s: fonts.load(FACES.get(k) or FALLBACK, max(8, int(s)))
 
 def wrap(d, text, f, maxw):
     out, cur = [], ""

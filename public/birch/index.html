@@ -606,7 +606,7 @@ input[type=range]{accent-color:var(--blue);width:180px}
     if (!state.formatPicked && d.format) state.format = d.format;
     if (!state.edited && (first || !state.beats.some(function(b){ return b.type === 'pop'; }))) planFromDirection(d);
     setRead(sp.name ? 'good' : 'meh', sp.name ? (sp.name + (sp.role ? ', ' + sp.role : '')) : 'Birch couldn\'t tell who\'s talking',
-      sp.name ? ('Where Birch got that: ' + (sp.how || 'the clip') + '. Fix it below if it\'s wrong.') : 'Nobody says a name in the clip. Type one below and the name card goes in.');
+      sp.name ? ('Where Birch got that: ' + (sp.how || 'the clip') + '. Fix it below if it\'s wrong.') : ((d.scene ? 'Birch sees: ' + d.scene + '. ' : '') + 'Nobody says a name, so type one below for the name card.'));
     renderBoard(); save();
   }
   function planFromDirection(d){
@@ -697,11 +697,13 @@ input[type=range]{accent-color:var(--blue);width:180px}
             }
             if (!bt.text) return;
             if (bt.type === 'title') return api.post('/api/birch/title', { id: state.id, text: bt.text });
-            return api.post('/api/pop', { id: state.id, word: bt.word, seconds: 1.2, by: 'birch', pop: { kind: 'pop', text: bt.text } });
+            return api.post('/api/pop', { id: state.id, word: bt.word, seconds: 1.2, by: 'birch', pop: { kind: 'pop', text: bt.text, look: wordLook() } });
           });
         }, Promise.resolve());
       }).then(save);
   }
+  // clean white words for speeches and interviews, the yellow slab when the edit is loud
+  function wordLook(){ return ['plate', 'pops'].indexOf(state.format) >= 0 ? 'block' : ((state.direction && state.direction.wordLook) || 'clean'); }
   function settings(base){
     base = base || (state.project && state.project.settings) || {};
     var bed = state.beds.filter(function(b){ return b.name === state.bed; })[0];

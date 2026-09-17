@@ -41,20 +41,32 @@ function headNoun(desc) {
 
 // Where a full-frame graphic should sit so it does not land on the speaker's face.
 // Read from the vision pass at that moment; falls back to the lower third.
+// Where an overlay of a given height can sit without covering the speaker, as a
+// centre y in the output frame. Uses the same crop the renderer will make.
 function clearY(k, wordIdx, ownHeight = 0.22) {
   try {
     const m = meta(k);
     const w = m.words[wordIdx] || m.words[0];
-    const log = VIS.load(path.join(pdir(k), 'vision.jsonl'));
-    const near = log.filter(r => r.faces && r.faces.length)
-      .map(r => ({ d: Math.abs(r.t - (w ? w.start : 0)), box: r.faces.slice().sort((a, b) => (b[2]-b[0])*(b[3]-b[1]) - (a[2]-a[0])*(a[3]-a[1]))[0] }))
-      .sort((a, b) => a.d - b.d)[0];
-    if (!near || near.d > 3) return 0.74;
+    const t = w ? w.start : 0;
+    const aspect = m.settings?.aspect;
+    const letterbox = !!m.settings?.letterbox && !!M.ASPECTS[aspect];
+    const [W, H] = M.ASPECTS[aspect] || [m.width, m.height];
+    const geo = M.frameGeometry(m, W, H, letterbox);
+    // letterboxed, the big words go in the bar above the picture
+    if (geo.bandH < H) return Math.max(ownHeight / 2 + 0.02, geo.bandY / H / 2);
+    let src = (m.speaker && m.speaker.length) ? m.speaker.map(x => ({ t: x.t, box: x.box })) : null;
+    if (!src) src = VIS.load(path.join(pdir(k), 'vision.jsonl')).filter(r => r.faces && r.faces.length)
+      .map(r => ({ t: r.t, box: r.faces.slice().sort((a, b) => (b[2]-b[0])*(b[3]-b[1]) - (a[2]-a[0])*(a[3]-a[1]))[0] }));
+    const faces = M.frameFaces({ words: m.words, silences: m.silences, wav: path.join(pdir(k), 'audio.wav'),
+      gapMax: m.settings?.gapMax ?? 0.5, info: m, aspect, letterbox, faces: src });
+    const near = faces.map(f => ({ d: Math.abs(f.t - t), box: f.box })).sort((a, b) => a.d - b.d)[0];
+    if (!near || near.d > 3) return 0.62;
     const [, top, , bottom] = near.box;
-    if (bottom + 0.04 + ownHeight < 0.97) return bottom + 0.04 + ownHeight / 2;   // under the chin
-    if (top - 0.04 - ownHeight > 0.03) return Math.max(0.10, top - 0.04 - ownHeight / 2);  // above the head
-    return 0.80;
-  } catch { return 0.74; }
+    // on the chest, just under the chin, clear of the mouth
+    if (bottom + 0.05 + ownHeight < 0.9) return Math.max(0.5, bottom + 0.05 + ownHeight / 2);
+    if (top - 0.03 - ownHeight > 0.04) return top - 0.03 - ownHeight / 2;
+    return 0.8;
+  } catch (e) { return 0.62; }
 }
 const TWITTER_KEY = process.env.TWITTERAPI_KEY || '';
 
@@ -166,7 +178,7 @@ function startDirect(id) {
     const m = meta(id);
     let formats = [];
     try { formats = JSON.parse(fs.readFileSync(path.join(ROOT, 'refs', 'templates.json'), 'utf8')); } catch {}
-    const d = await DIR.direct(m, VIS.load(path.join(pdir(id), 'vision.jsonl')), formats);
+    const d = await DIR.direct(m, VIS.load(path.join(pdir(id), 'vision.jsonl')), formats, path.join(pdir(id), 'look'));
     const cur = meta(id); cur.direction = d; delete cur.directionError; saveMeta(id, cur);
     setTask(tid, { stage: 'done', pct: 100, ended: Date.now(),
       note: (d.speaker.name ? `${d.speaker.name} is talking` : 'no name in the clip') + (d.format ? `, ${d.format} format` : '') });
@@ -941,7 +953,7 @@ const server = http.createServer(async (req, res) => {
       const W = ASPECT_WH(m.settings?.aspect, m);
       let info;
       const wi = Number(word) || 0;
-      const yFor = pop.kind === 'comment' ? (pop.y ?? 0.62) : clearY(k, wi, pop.kind === 'pop' ? 0.20 : 0.26);
+      const yFor = pop.kind === 'comment' ? (pop.y ?? 0.62) : clearY(k, wi, pop.kind === 'pop' ? 0.09 : 0.26);
       try { info = await runPy('pop.py', { ...pop, y: yFor, tight: false, width: W[0], height: W[1], out: file }); }
       catch (e) { return send(res, 400, { error: e.message }); }
       m.overlays = m.overlays || [];

@@ -2,12 +2,11 @@
 """A hook card: the big line that sits over the first seconds of a reel."""
 import json, sys, os
 from PIL import Image, ImageDraw, ImageFont
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fonts
 
 HOME = os.path.expanduser("~")
-FACE = next((p for p in [HOME + "/Library/Fonts/MikadoUltra.otf",
-    "/System/Library/Fonts/Supplemental/Impact.ttf",
-    "/System/Library/Fonts/Supplemental/Arial Black.ttf"] if os.path.exists(p)),
-    "/System/Library/Fonts/Supplemental/Arial Bold.ttf")
+FACE = "sf:heavy"
 
 def wrap(d, text, font, maxw):
     lines, cur = [], ""
@@ -29,7 +28,7 @@ def main():
 
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    font = ImageFont.truetype(FACE, size)
+    font = fonts.load(FACE, size)
     maxw = int(W * 0.82)
     # a title line keeps the case it was typed in; only the opening hook shouts
     up = c.get("upper", c.get("place") != "upper")
