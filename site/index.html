@@ -39,6 +39,29 @@ a{color:inherit}
   background:var(--orange);color:#1A0E02;border-radius:14px;padding:15px 24px;transition:background .2s;will-change:transform;box-shadow:0 6px 0 rgba(11,20,64,.25)}
 .btn:hover{background:#FF8C33}
 .btn span{display:inline-block;pointer-events:none}
+html{overflow-x:clip}
+.marquee,.wrap{overflow-x:clip}
+.picker{margin-top:30px;max-width:620px;min-width:0;width:100%}
+.hero>div,.end-grid>div{min-width:0}
+.cmd{max-width:100%}
+.tabs{display:flex;gap:18px;margin-bottom:10px}
+.tabs button{background:none;border:0;padding:0 0 5px;font:600 14px var(--body);color:var(--fg-dim);border-bottom:2px solid transparent;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--yellow)}
+.cmd{display:flex;align-items:center;gap:10px;background:var(--ink);border-radius:14px;padding:6px 6px 6px 18px;box-shadow:0 18px 40px -22px rgba(0,0,0,.6)}
+.cmd code{flex:1;min-width:0;color:#FFF8EA;font:500 14px/1.6 "Geist Mono",ui-monospace,monospace;white-space:nowrap;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+.cmd code::-webkit-scrollbar{display:none}
+.copy{flex:none;border:0;border-radius:10px;background:var(--yellow);color:var(--ink);font:700 14px var(--body);padding:10px 16px;cursor:pointer}
+.copy.done{background:#2BB673;color:#fff}
+.note{margin:10px 2px 0;font-size:14.5px;color:var(--fg-dim)}
+.alt{display:inline-block;margin-top:18px;color:var(--fg);font-weight:600;font-size:15px;text-decoration:none;border-bottom:2px solid var(--line)}
+.alt:hover{border-color:var(--yellow)}
+.steps3{display:grid;gap:14px;margin:26px 0 8px;counter-reset:s}
+.steps3 li{list-style:none;display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start}
+.steps3 li::before{counter-increment:s;content:counter(s);width:34px;height:34px;border-radius:50%;background:var(--yellow);color:var(--ink);font:800 16px var(--display,var(--body));display:grid;place-items:center}
+.steps3 b{display:block;font-size:17px}
+.steps3 span{font-size:15px;color:var(--fg-dim)}
+.steps3 code,.note code{font-family:"Geist Mono",ui-monospace,monospace;background:rgba(255,255,255,.14);padding:1px 6px;border-radius:5px}
+.needs{font-size:14px;color:var(--fg-dim);margin-top:14px}
 .install{margin:22px 0 4px;background:var(--ink);color:#FFF8EA;border-radius:14px;padding:16px 18px;font:500 14px/1.7 "Geist Mono",ui-monospace,monospace;overflow-x:auto;max-width:100%}
 .install code{white-space:pre}
 .after{font-size:15px;opacity:.85;margin:10px 0 0}
@@ -245,7 +268,7 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
 
 <nav id="nav"><div class="nav-in">
   <a class="brand" href="#top"><span><img src="avatar-cut.webp" alt=""></span>Birch</a>
-  <div class="links"><a href="#cut">Cutting</a><a href="#plan">The plan</a><a href="#looks">Looks</a><a href="#sound">Sound</a><a class="btn magnet" href="https://github.com/veds260/birch"><span>GitHub</span></a></div>
+  <div class="links"><a href="#cut">Cutting</a><a href="#plan">The plan</a><a href="#looks">Looks</a><a href="https://github.com/veds260/birch">GitHub</a><a class="btn magnet" href="#get"><span>Install</span></a></div>
 </div></nav>
 
 <div class="wrap">
@@ -254,8 +277,13 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
   <div>
     <div class="eyebrow">Free, open source, runs on your Mac</div>
     <h1 id="headline">Hire a beaver to cut your <em>reels.</em></h1>
-    <p class="lede">Drop in a clip and he gnaws out the pauses and retakes, then adds captions, a name card and music. Free, and it runs on your Mac.</p>
-    <div class="cta"><a class="btn magnet" href="#get"><span>Install Birch</span></a><a class="btn ghost magnet" href="#cut"><span>Watch him work</span></a></div>
+    <p class="lede">Drop in a clip and he gnaws out the pauses and retakes, follows your face into a vertical crop, and adds captions, big words and music. Free, and it runs on your Mac.</p>
+    <div class="picker" data-picker>
+      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-cmd="curl -fsSL https://birch.video/install | sh" data-note="Installs Birch, then your browser opens to finish setup.">Terminal</button><button role="tab" aria-selected="false" data-cmd="curl -fsSL https://birch.video/install | sh && claude mcp add --scope user birch -- birch mcp" data-note="Same install, plus Birch inside Claude Code. Then ask Claude to cut a clip.">With Claude Code</button></div>
+      <div class="cmd"><code data-code>curl -fsSL https://birch.video/install | sh</code><button class="copy" data-copy>Copy</button></div>
+      <p class="note" data-note>Installs Birch, then your browser opens to finish setup.</p>
+    </div>
+    <a class="alt" href="#cut">or watch him work first</a>
   </div>
   <div class="stage">
     <div class="sun" id="sun"></div>
@@ -380,12 +408,18 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
 <section class="end band t-blue" id="get">
   <div class="end-grid">
     <div>
-      <div class="eyebrow">06 · Where he lives</div>
-      <h2>He lives on your laptop</h2>
-      <p>Open source, no account, and your clips never leave your Mac. Needs an Apple Silicon Mac.</p>
-      <pre class="install" aria-label="install command"><code>curl -fsSL https://birch.video/install | sh</code></pre>
-      <p class="after">Then type <code>birch</code> any time. Setup happens in your browser, and it asks for a GitHub star and a follow.</p>
-      <div class="cta"><a class="btn magnet" href="https://github.com/veds260/birch"><span>Wake him up on GitHub</span></a></div>
+      <div class="eyebrow">06 · Get started</div>
+      <h2>Wake him up</h2>
+      <ol class="steps3">
+        <li><div><b>Paste this in Terminal</b><span>It takes about a minute and adds a <code>birch</code> command.</span></div></li>
+        <li><div><b>Finish setup in your browser</b><span>Star the repo and follow along on GitHub, then Birch downloads ffmpeg, whisper and its speech model with one button each.</span></div></li>
+        <li><div><b>Drop in a clip</b><span>Or run <code>birch cut talk.mov</code>, or ask Claude to cut it for you.</span></div></li>
+      </ol>
+      <div class="picker" data-picker>
+        <div class="cmd"><code data-code>curl -fsSL https://birch.video/install | sh</code><button class="copy" data-copy>Copy</button></div>
+      </div>
+      <p class="needs">Needs macOS with Homebrew. Claude Code is optional and lets Birch read the clip and plan the edit on your own plan. Your clips never leave your Mac.</p>
+      <a class="alt" href="https://github.com/veds260/birch">Read the code on GitHub</a>
     </div>
     <div class="media"><div class="moon"></div><img class="cut-out para" src="sleep-cut.webp" alt="Birch asleep on a stack of film canisters"><div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>z</span></div></div>
   </div>
@@ -415,6 +449,20 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
   })();
 
   document.querySelectorAll('a[href^="#"]').forEach(function(a){ a.addEventListener('click', function(e){ var id = a.getAttribute('href'), el = id.length > 1 && document.querySelector(id); if (el){ e.preventDefault(); scrollTo({ top: el.getBoundingClientRect().top + scrollY - 70, behavior: reduce ? 'auto' : 'smooth' }); } }); });
+
+  document.querySelectorAll('[data-picker]').forEach(function(pk){
+    var code = pk.querySelector('[data-code]'), note = pk.querySelector('[data-note]'), copy = pk.querySelector('[data-copy]');
+    pk.querySelectorAll('[role=tab]').forEach(function(t){ t.addEventListener('click', function(){
+      pk.querySelectorAll('[role=tab]').forEach(function(x){ x.setAttribute('aria-selected', x === t); });
+      code.textContent = t.dataset.cmd; if (note) note.textContent = t.dataset.note;
+    }); });
+    copy.addEventListener('click', function(){
+      var text = code.textContent, done = function(){ copy.textContent = 'Copied'; copy.classList.add('done'); setTimeout(function(){ copy.textContent = 'Copy'; copy.classList.remove('done'); }, 1600); };
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function(){ fallback(); });
+      else fallback();
+      function fallback(){ var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} t.remove(); }
+    });
+  });
 
   var nav = document.getElementById('nav');
   function navState(){ nav.classList.toggle('stuck', scrollY > 30); }
