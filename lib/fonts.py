@@ -5,7 +5,37 @@ import os
 from PIL import ImageFont
 
 SF = "/System/Library/Fonts/SFNS.ttf"
-FALLBACK = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+
+def _first(paths):
+    return next((p for p in paths if os.path.exists(p)), None)
+
+def _fc(pattern):
+    """Ask fontconfig (Linux) for a real file for a pattern like 'sans-serif:bold'."""
+    try:
+        import subprocess
+        out = subprocess.run(["fc-match", "-f", "%{file}", pattern], capture_output=True, timeout=5).stdout.decode()
+        return out.strip() or None
+    except Exception:
+        return None
+
+# Macs have SF Pro. Elsewhere, take the heaviest grotesque that is actually installed,
+# then let fontconfig pick, then give up on anything fancy.
+LINUX_HEAVY = _first([
+    "/usr/share/fonts/truetype/inter/Inter-Black.ttf",
+    "/usr/share/fonts/opentype/inter/Inter-Black.otf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
+]) or _fc("sans-serif:bold")
+LINUX_TEXT = _first([
+    "/usr/share/fonts/truetype/inter/Inter-Regular.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+]) or _fc("sans-serif")
+FALLBACK = _first(["/System/Library/Fonts/Supplemental/Arial Bold.ttf"]) or LINUX_HEAVY or LINUX_TEXT or ""
 # name: (weight 1-1000, width 30-150)
 ROLES = {
     "display": (900, 72),    # big words, condensed and heavy
@@ -21,6 +51,13 @@ def load(spec, size):
     size = max(8, int(size))
     key = (spec, size)
     if key in _cache: return _cache[key]
+    if isinstance(spec, str) and spec.startswith("sf:") and not os.path.exists(SF):
+        # no SF Pro here, so heavy roles take the bold face and the rest the regular one
+        weight = ROLES.get(spec[3:], ROLES["bold"])[0]
+        path = (LINUX_HEAVY if weight >= 600 else LINUX_TEXT) or FALLBACK
+        f = ImageFont.truetype(path, size) if path else ImageFont.load_default()
+        _cache[key] = f
+        return f
     if isinstance(spec, str) and spec.startswith("sf:") and os.path.exists(SF):
         weight, width = ROLES.get(spec[3:], ROLES["bold"])
         f = ImageFont.truetype(SF, size)

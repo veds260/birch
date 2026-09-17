@@ -12,6 +12,7 @@ set -eu
 
 DIR="${BIRCH_DIR:-$HOME/.birch}"
 REPO="${BIRCH_REPO:-https://github.com/veds260/birch.git}"
+OS="$(uname -s)"
 
 say()  { printf '\n  %s\n' "$1"; }
 step() { printf '  %s\n' "$1"; }
@@ -19,20 +20,32 @@ die()  { printf '\n  %s\n\n' "$1" >&2; exit 1; }
 
 say "Installing Birch"
 
-[ "$(uname -s)" = Darwin ] || die "Birch runs on macOS only, because it uses Apple's Vision framework to find faces."
+case "$OS" in
+  Darwin) ;;
+  Linux) ;;
+  *) die "Birch runs on macOS and Linux. On Windows, install it inside WSL2." ;;
+esac
 
-# a fresh Mac has a git placeholder that only works once Apple's command line tools are in
-if ! xcode-select -p >/dev/null 2>&1; then
+if [ "$OS" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then
+  # a fresh Mac has a git placeholder that only works once Apple's command line tools are in
   xcode-select --install >/dev/null 2>&1 || true
   die "Apple's command line tools are needed first. A window just opened to install them (about 5 minutes). When it finishes, run this again."
 fi
+
+command -v git >/dev/null 2>&1 || die "git is missing. Install it first, then run this again."
 
 if ! command -v node >/dev/null 2>&1; then
   if command -v brew >/dev/null 2>&1; then
     step "installing node with Homebrew, this can take a few minutes"
     brew install node
+  elif command -v apt-get >/dev/null 2>&1; then
+    die "Birch needs Node 18 or newer. Run: sudo apt-get install -y nodejs npm"
+  elif command -v dnf >/dev/null 2>&1; then
+    die "Birch needs Node 18 or newer. Run: sudo dnf install -y nodejs"
+  elif command -v pacman >/dev/null 2>&1; then
+    die "Birch needs Node 18 or newer. Run: sudo pacman -S nodejs npm"
   else
-    die "Birch needs Node 18 or newer. Install Homebrew from https://brew.sh (or Node from nodejs.org), then run this again."
+    die "Birch needs Node 18 or newer. Install it from https://nodejs.org, then run this again."
   fi
 fi
 NODE_MAJOR=$(node -p 'process.versions.node.split(".")[0]')
@@ -60,8 +73,11 @@ if [ -z "$LINKED" ]; then
   LINKED="$HOME/.local/bin"
   case ":$PATH:" in
     *":$LINKED:"*) ;;
-    *) printf '\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$HOME/.zshrc"
-       step "added ~/.local/bin to your PATH in ~/.zshrc (open a new terminal for it)" ;;
+    *) for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
+         [ -e "$rc" ] || continue
+         printf '\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$rc"
+       done
+       step "added ~/.local/bin to your PATH. Open a new terminal for it." ;;
   esac
 fi
 step "the birch command is in $LINKED"

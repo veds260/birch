@@ -4,7 +4,7 @@
 
 Birch cuts your talking videos into reels ([birch.video](https://birch.video)). Drop in a clip and he takes out the pauses and retakes, works out who's talking, puts their name on screen, throws the words they lean on up in big type and lays music underneath. You get an mp4.
 
-It runs on your Mac. Transcription is whisper.cpp, faces come from Apple's Vision framework and rendering is ffmpeg. The part that plans the edit goes through Claude Code or Codex, so it uses the Claude or ChatGPT plan you already have. No API keys, no uploads.
+It runs on your own machine: macOS or Linux, and Windows through WSL2. Transcription is whisper.cpp, faces come from Apple's Vision framework on a Mac and MediaPipe elsewhere, and rendering is ffmpeg. The part that plans the edit goes through Claude Code or Codex, so it uses the Claude or ChatGPT plan you already have. No API keys, no uploads.
 
 ## Install
 
@@ -23,7 +23,7 @@ birch doctor           # what's set up and what isn't
 birch update           # pulls the latest version
 ```
 
-You need macOS with [Homebrew](https://brew.sh). For the auto plan, sign in to [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) or [Codex](https://github.com/openai/codex) from the setup page. Without either, Birch still cuts, captions and adds music.
+On a Mac you need [Homebrew](https://brew.sh). On Linux the setup page gives you one line to paste for ffmpeg and the build tools, and Birch builds whisper itself. For the auto plan, sign in to [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) or [Codex](https://github.com/openai/codex) from the setup page. Without either, Birch still cuts, captions and adds music.
 
 ## MCP
 
@@ -64,6 +64,8 @@ site/              the landing page
 ```
 
 Projects live in `~/.birch/projects`, one folder per clip, and never leave your machine.
+
+The face work uses Apple's Vision framework on a Mac and MediaPipe on Linux, so the same edits come out of both.
 
 ## Options
 

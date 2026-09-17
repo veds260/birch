@@ -17,6 +17,12 @@ try? FileManager.default.removeItem(at: outURL)
 
 let asset = AVURLAsset(url: inURL)
 guard let track = asset.tracks(withMediaType: .video).first else { exit(3) }
+// the file's own rotation, so the matte matches the picture people see
+let tf = track.preferredTransform
+var orient: CGImagePropertyOrientation = .up
+if tf.b == 1.0 && tf.c == -1.0 { orient = .right }
+else if tf.b == -1.0 && tf.c == 1.0 { orient = .left }
+else if tf.a == -1.0 && tf.d == -1.0 { orient = .down }
 let size = track.naturalSize.applying(track.preferredTransform)
 let W = abs(Int(size.width)), H = abs(Int(size.height))
 let fps = track.nominalFrameRate > 0 ? track.nominalFrameRate : 30
@@ -62,7 +68,7 @@ input.requestMediaDataWhenReady(on: queue) {
             return
         }
         let time = CMSampleBufferGetPresentationTimeStamp(sample)
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixels, orientation: .up, options: [:])
+        let handler = VNImageRequestHandler(cvPixelBuffer: pixels, orientation: orient, options: [:])
         var out: CVPixelBuffer?
         CVPixelBufferCreate(nil, W, H, kCVPixelFormatType_32BGRA, nil, &out)
         if let buf = out {

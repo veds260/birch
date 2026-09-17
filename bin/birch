@@ -39,7 +39,7 @@ async function start(quiet) {
   if (!quiet) console.error(`Birch didn't start. The log is at ${LOG}`);
   process.exit(1);
 }
-const openUrl = url => execFile('open', [url], () => {});
+const { openUrl } = require(path.join(ROOT, 'lib', 'bin.js'));
 
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);

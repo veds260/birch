@@ -198,6 +198,8 @@ input[type=range]{accent-color:var(--blue);width:180px}
 .ai-row .st{font-size:13px;color:var(--ink-dim);flex:1;min-width:140px}
 .ai-row .st.ok{color:#1E8A55;font-weight:600}
 .ai-row code{font-family:var(--mono);font-size:12.5px;background:#EEF1FA;padding:4px 8px;border-radius:7px}
+#toolsCmd{align-items:center}
+#toolsCmd code{font-family:var(--mono);font-size:12.5px;background:var(--ink);color:#FFF8EA;padding:8px 12px;border-radius:9px;overflow-x:auto;white-space:nowrap;max-width:100%}
 .setup{display:flex;flex-direction:column;gap:12px;margin-top:22px}
 .step{padding:18px 20px;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:14px;align-items:start}
 .step .tick{width:26px;height:26px;border-radius:50%;background:#E3E8FA;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--ink-dim);margin-top:2px}
@@ -260,8 +262,10 @@ input[type=range]{accent-color:var(--blue);width:180px}
             <div class="acts"><a class="btn soft" href="https://github.com/veds260/birch" target="_blank" rel="noopener">★ Star</a><a class="btn soft" href="https://github.com/veds260" target="_blank" rel="noopener">Follow @veds260</a></div>
             <div class="more"><input id="ghUser" placeholder="your GitHub username" autocomplete="off"><button class="btn" id="ghCheck">Check</button><button class="btn soft" id="ghClick" hidden>Do both with the GitHub CLI</button></div>
             <div class="msg" id="ghMsg"></div></div>
-          <div class="card step" data-step="tools"><i class="tick">2</i><div><b>ffmpeg and whisper</b><p>They cut the video and turn speech into words. Installed with Homebrew.</p></div>
-            <div class="acts"><button class="btn" data-run="tools">Install</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
+          <div class="card step" data-step="tools"><i class="tick">2</i><div><b>ffmpeg and whisper</b><p id="toolsWhat">They cut the video and turn speech into words. Installed with Homebrew.</p></div>
+            <div class="acts"><button class="btn" data-run="tools">Install</button></div>
+            <div class="more" id="toolsCmd" hidden><code></code><button class="btn soft" type="button">Copy</button></div>
+            <div class="bar"><i></i></div><div class="msg"></div></div>
           <div class="card step" data-step="model"><i class="tick">3</i><div><b>The speech model</b><p>About 490 MB, downloaded once.</p></div>
             <div class="acts"><button class="btn" data-run="model">Download</button></div><div class="bar"><i></i></div><div class="msg"></div></div>
           <div class="card step" data-step="vision"><i class="tick">4</i><div><b>Face tools</b><p>Built on your Mac so Birch can find who's talking.</p></div>
@@ -824,6 +828,19 @@ input[type=range]{accent-color:var(--blue);width:180px}
       el.querySelector('.tick').textContent = d.done ? '✓' : el.dataset.n || el.querySelector('.tick').textContent;
       if (k === 'mcp' && !d.done && !d.possible){ el.querySelector('.msg').textContent = 'needs Claude Code or Codex first'; }
     });
+    var t = st.steps.tools;
+    if (!t.mac){
+      $('#toolsWhat').textContent = 'They cut the video and turn speech into words.';
+      var box = $('#toolsCmd');
+      if (t.command && !t.done){
+        box.hidden = false;
+        box.querySelector('code').textContent = t.command;
+        box.querySelector('button').onclick = function(){
+          var b = this; navigator.clipboard && navigator.clipboard.writeText(t.command);
+          b.textContent = 'Copied'; setTimeout(function(){ b.textContent = 'Copy'; }, 1600);
+        };
+      } else box.hidden = true;
+    }
     var ai = st.steps.ai;
     ['claude', 'codex'].forEach(function(w){
       var row = document.querySelector('[data-ai="' + w + '"]'), d = ai[w], stt = row.querySelector('.st');

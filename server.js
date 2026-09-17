@@ -75,7 +75,7 @@ function clearY(k, wordIdx, ownHeight = 0.22, prefer = 'below') {
 const TWITTER_KEY = process.env.TWITTERAPI_KEY || '';
 
 const runPy = (script, cfg) => new Promise((resolve, reject) => {
-  const pr = require('child_process').spawn('python3', [path.join(__dirname, 'lib', script)],
+  const pr = require('child_process').spawn(require('./lib/bin').python(), [path.join(__dirname, 'lib', script)],
     { env: { ...process.env, TWITTERAPI_KEY: TWITTER_KEY } });
   let out = '', err = '';
   pr.stdout.on('data', d => out += d);
@@ -1401,7 +1401,7 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'POST' && p === '/api/reveal') {
       const { id: k } = await readJson(req);
-      if (safeId(k)) execFile('open', ['-R', path.join(pdir(k), 'final.mp4')]);
+      if (safeId(k)) require('./lib/bin').reveal(path.join(pdir(k), 'final.mp4'));
       return send(res, 200, { ok: true });
     }
 
