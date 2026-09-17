@@ -276,12 +276,11 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
 <header class="hero" id="top">
   <div>
     <div class="eyebrow">Free, open source, runs on your Mac</div>
-    <h1 id="headline">Hire a beaver to cut your <em>reels.</em></h1>
+    <h1 id="headline">Hire a beaver to cut your <em>reels</em></h1>
     <p class="lede">Drop in a clip and he gnaws out the pauses and retakes, follows your face into a vertical crop, and adds captions, big words and music. Free, and it runs on your Mac.</p>
     <div class="picker" data-picker>
-      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-cmd="curl -fsSL https://birch.video/install | sh" data-note="Installs Birch, then your browser opens to finish setup.">Terminal</button><button role="tab" aria-selected="false" data-cmd="curl -fsSL https://birch.video/install | sh && claude mcp add --scope user birch -- birch mcp" data-note="Same install, plus Birch inside Claude Code. Then ask Claude to cut a clip.">With Claude Code</button></div>
+      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-cmd="curl -fsSL https://birch.video/install | sh">Terminal</button><button role="tab" aria-selected="false" data-cmd="curl -fsSL https://birch.video/install | sh && claude mcp add --scope user birch -- birch mcp">With Claude Code</button></div>
       <div class="cmd"><code data-code>curl -fsSL https://birch.video/install | sh</code><button class="copy" data-copy>Copy</button></div>
-      <p class="note" data-note>Installs Birch, then your browser opens to finish setup.</p>
     </div>
     <a class="alt" href="#cut">or watch him work first</a>
   </div>
@@ -411,14 +410,14 @@ footer{display:flex;justify-content:space-between;gap:16px;padding-block:22px 36
       <div class="eyebrow">06 · Get started</div>
       <h2>Wake him up</h2>
       <ol class="steps3">
-        <li><div><b>Paste this in Terminal</b><span>It takes about a minute and adds a <code>birch</code> command.</span></div></li>
-        <li><div><b>Finish setup in your browser</b><span>Star the repo and follow along on GitHub, then Birch downloads ffmpeg, whisper and its speech model with one button each.</span></div></li>
-        <li><div><b>Drop in a clip</b><span>Or run <code>birch cut talk.mov</code>, or ask Claude to cut it for you.</span></div></li>
+        <li><div><b>Paste this in Terminal</b></div></li>
+        <li><div><b>Finish setup in your browser</b></div></li>
+        <li><div><b>Drop in a clip</b></div></li>
       </ol>
       <div class="picker" data-picker>
         <div class="cmd"><code data-code>curl -fsSL https://birch.video/install | sh</code><button class="copy" data-copy>Copy</button></div>
       </div>
-      <p class="needs">Needs macOS with Homebrew. Claude Code is optional and lets Birch read the clip and plan the edit on your own plan. Your clips never leave your Mac.</p>
+      <p class="needs">macOS and Homebrew</p>
       <a class="alt" href="https://github.com/veds260/birch">Read the code on GitHub</a>
     </div>
     <div class="media"><div class="moon"></div><img class="cut-out para" src="sleep-cut.webp" alt="Birch asleep on a stack of film canisters"><div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>z</span></div></div>
