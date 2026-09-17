@@ -1,7 +1,7 @@
 #!/bin/sh
 # Birch installer.
 #
-#   curl -fsSL https://raw.githubusercontent.com/veds260/birch/main/install.sh | sh
+#   curl -fsSL https://birch.video/install | sh
 #
 # Read it before you run it. It puts Birch in ~/.birch, adds a `birch` command,
 # and opens the setup page in your browser, which does the rest with buttons.

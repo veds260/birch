@@ -10,7 +10,7 @@ Birch is a local server with a `birch` command. If the Birch MCP tools (`birch_c
 ## 1. Make sure it's running and set up
 
 ```sh
-command -v birch >/dev/null || curl -fsSL https://raw.githubusercontent.com/veds260/birch/main/install.sh | sh
+command -v birch >/dev/null || curl -fsSL https://birch.video/install | sh
 birch doctor
 ```
 

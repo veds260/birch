@@ -2,14 +2,14 @@
 
 <img src="public/birch/hero-cut.webp" width="180" align="right" alt="Birch the beaver">
 
-Birch cuts your talking videos into reels ([site](https://birch-production-6194.up.railway.app)). Drop in a clip and he takes out the pauses and retakes, works out who's talking, puts their name on screen, throws the words they lean on up in big type and lays music underneath. You get an mp4.
+Birch cuts your talking videos into reels ([birch.video](https://birch.video)). Drop in a clip and he takes out the pauses and retakes, works out who's talking, puts their name on screen, throws the words they lean on up in big type and lays music underneath. You get an mp4.
 
 It runs on your Mac. Transcription is whisper.cpp, faces come from Apple's Vision framework and rendering is ffmpeg. The part that plans the edit goes through Claude Code, so it uses the Claude plan you already have. No API keys, no uploads.
 
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/veds260/birch/main/install.sh | sh
+curl -fsSL https://birch.video/install | sh
 ```
 
 That puts Birch in `~/.birch`, gives you a `birch` command and opens the setup page in your browser. The page installs ffmpeg and whisper, downloads the speech model and builds the face tools, each with a button. It also asks you to star this repo and follow [@veds260](https://github.com/veds260) before it unlocks.
