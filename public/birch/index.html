@@ -210,8 +210,8 @@ input[type=range]{accent-color:var(--blue);width:180px}
 .err{margin-top:14px;color:#B3261E;font-weight:600;display:none}
 .err.on{display:block}
 
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;border-radius:12px;padding:11px 16px;font-weight:600;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);z-index:50}
-.toast.on{transform:translateX(-50%) translateY(0)}
+.toast{position:fixed;left:50%;bottom:22px;opacity:0;pointer-events:none;transform:translateX(-50%) translateY(calc(100% + 40px));background:var(--ink);color:#fff;border-radius:12px;padding:11px 16px;font-weight:600;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);z-index:50}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 .look .cap{pointer-events:none}
 @media (max-width:1100px){.beds,.summary,.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cutwrap,.result{grid-template-columns:1fr}}
@@ -441,7 +441,8 @@ input[type=range]{accent-color:var(--blue);width:180px}
     api.get('/api/projects').then(function(list){
       var g = $('#recent'); g.innerHTML = '';
       list = (list || []).filter(function(p){ return p.words; }).slice(0, 12);
-      $('#recentWrap').hidden = !list.length;
+      // ?demo keeps old projects off screen, for recording
+      $('#recentWrap').hidden = !list.length || new URLSearchParams(location.search).has('demo');
       list.forEach(function(p){
         var b = document.createElement('button'); b.className = 'proj';
         b.innerHTML = '<div class="th" style="background-image:url(/api/project/thumb?id=' + encodeURIComponent(p.id) + ')"></div><div class="meta"><b></b><span>' + fmt(p.duration) + '</span></div>';
