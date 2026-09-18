@@ -363,8 +363,9 @@ input[type=range]{accent-color:var(--blue);width:180px}
       <section class="view" id="v-sound">
         <div class="eyebrow">05 · Sound</div>
         <h2>Pick a music bed</h2>
-        <p class="lede">The bed dips whenever you talk and comes back up in the gaps. Use the same one across your videos and people start to recognise them.</p>
+        <p class="lede">Music dips whenever you talk and comes back up in the gaps. Use the same track across your videos and people start to recognise it.</p>
         <div class="beds" id="beds"></div>
+        <p class="lede" id="bedNote" hidden></p>
         <div class="card sliders">
           <label>Music level <input type="range" id="bedGain" min="0.12" max="0.6" step="0.02" value="0.32"></label>
           <label class="toggle"><input type="checkbox" id="sfxOn" checked> Sound effects on cards and big words</label>
@@ -669,11 +670,14 @@ input[type=range]{accent-color:var(--blue);width:180px}
 
   /* ---------- sound ---------- */
   var BED_WORDS = { speech: 'soft piano and strings, no drums', street: 'mellow lo-fi with dusty drums', drive: 'a steady synth pulse' };
+  var NO_BEDS = 'Birch ships without music. Drop .wav files into the beds folder and they show up here.';
+  $('#bedNote').textContent = NO_BEDS;
   var audioEl = new Audio(), playing = null;
   function loadBeds(){
     api.get('/api/birch/beds').then(function(list){
       state.beds = list || [];
       var box = $('#beds'); box.innerHTML = '';
+      $('#bedNote').hidden = state.beds.length > 0;
       [{ name: 'none' }].concat(state.beds).forEach(function(b){
         var el = document.createElement('button'); el.className = 'bed' + (state.bed === b.name ? ' on' : '');
         el.innerHTML = '<b></b><span></span>' + (b.name !== 'none' ? '<span class="play" role="button">▶ Preview</span>' : '');

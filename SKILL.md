@@ -10,9 +10,13 @@ Birch is a local server with a `birch` command. If the Birch MCP tools (`birch_c
 ## 1. Make sure it's running and set up
 
 ```sh
-command -v birch >/dev/null || curl -fsSL https://birch.video/install | sh
 birch doctor
 ```
+
+If there is no `birch` command, tell the user how to install it and let them run it:
+`curl -fsSL https://birch.video/install | sh` on macOS or Linux, or
+`irm https://birch.video/install.ps1 | iex` in PowerShell on Windows. Don't pipe an
+installer into a shell on someone's machine without asking.
 
 If doctor lists anything missing, run `birch` and ask the user to finish the setup page it opens. Imports and renders are refused until setup is done.
 

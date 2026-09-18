@@ -5,8 +5,8 @@
 #
 # Read it before you run it. It puts Birch in ~/.birch, adds a `birch` command,
 # and opens the setup page in your browser, which does the rest with buttons.
-# It never asks for a password and writes nothing outside ~/.birch except the
-# one command link.
+# It never asks for a password. Outside ~/.birch it writes one command link, and
+# adds that folder to your PATH in ~/.zshrc or ~/.bashrc if it is not there yet.
 
 set -eu
 
@@ -65,7 +65,10 @@ chmod +x "$DIR/bin/birch"
 # the command: somewhere already on PATH if we can write there, otherwise ~/.local/bin
 LINKED=""
 for d in ${BIRCH_BIN_DIR:-/opt/homebrew/bin /usr/local/bin}; do
-  if [ -d "$d" ] && [ -w "$d" ]; then ln -sf "$DIR/bin/birch" "$d/birch"; LINKED="$d"; break; fi
+  [ -d "$d" ] && [ -w "$d" ] || continue
+  # something else called birch is not ours to replace
+  if [ -e "$d/birch" ] && [ "$(readlink "$d/birch" 2>/dev/null)" != "$DIR/bin/birch" ]; then continue; fi
+  ln -sf "$DIR/bin/birch" "$d/birch"; LINKED="$d"; break
 done
 if [ -z "$LINKED" ]; then
   mkdir -p "$HOME/.local/bin"

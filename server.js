@@ -7,7 +7,9 @@ const path = require('path');
 const { execFile } = require('child_process');
 const M = require('./lib/media');
 const SUG = require('./lib/suggest');
-const FLOW = require('./lib/flow');
+// optional, and not part of what Birch ships: see lib/flow.js in the private tree
+const FLOW = (() => { try { return require('./lib/flow'); } catch { return null; } })();
+const noFlow = res => send(res, 404, { error: 'This build has no Flow driver.' });
 const SHOTS = require('./lib/shots');
 const EP = require('./lib/editprompt');
 const ALIGN = require('./lib/align');
@@ -403,8 +405,23 @@ async function applyOps(k, ops) {
   return done;
 }
 
+// Birch listens on this machine only, but any web page could still POST to it from a
+// browser. A request carrying someone else's origin is not from Birch's own page.
+function crossSite(req) {
+  const origin = req.headers.origin;
+  if (!origin) return false;                       // curl, the CLI, the MCP server
+  try {
+    const h = new URL(origin).host;
+    return !(h === `127.0.0.1:${PORT}` || h === `localhost:${PORT}` || h === `[::1]:${PORT}`);
+  } catch { return true; }
+}
+
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${HOST}`);
+  if (req.method !== 'GET' && req.method !== 'HEAD' && crossSite(req)) {
+    req.resume();
+    return send(res, 403, { error: 'That request came from another site.' });
+  }
   const p = u.pathname;
   const id = u.searchParams.get('id');
   try {
@@ -922,6 +939,7 @@ const server = http.createServer(async (req, res) => {
         for (const s of shots) {
           setTask(tid, { note: `Shot ${done + 1} of ${shots.length}: opening Flow`, pct: Math.round(done / shots.length * 100) });
           try {
+            if (!FLOW) throw new Error('This build has no Flow driver.');
             const r = await FLOW.generate(s.prompt, dir,
               st => setTask(tid, { note: `Shot ${done + 1} of ${shots.length}: ${st}` }), s.refs || []);
             const cur = meta(k); cur.overlays = cur.overlays || [];
@@ -1033,6 +1051,7 @@ const server = http.createServer(async (req, res) => {
       const m = meta(k);
       const known = new Set((m.overlays || []).map(o => o.src).filter(Boolean));
       const tid = newTask('flow', k, 'Collect from Flow');
+      if (!FLOW) return noFlow(res);
       FLOW.collect(path.join(pdir(k), 'stickers'), known)
         .then(got => {
           const cur = meta(k); cur.overlays = cur.overlays || [];
@@ -1149,9 +1168,11 @@ const server = http.createServer(async (req, res) => {
 
     // Flow ------------------------------------------------------------------
     if (req.method === 'GET' && p === '/api/flow/status')
+      if (!FLOW) return noFlow(res);
       return send(res, 200, await FLOW.status());
 
     if (req.method === 'POST' && p === '/api/flow/login') {
+      if (!FLOW) return noFlow(res);
       try { return send(res, 200, await FLOW.login()); }
       catch (e) { return send(res, 400, { error: e.message }); }
     }
@@ -1162,6 +1183,7 @@ const server = http.createServer(async (req, res) => {
       const m = meta(k);
       const dir = path.join(pdir(k), 'stickers');
       const tid = newTask('flow', k, 'Flow: ' + String(prompt).slice(0, 40));
+      if (!FLOW) return noFlow(res);
       FLOW.generate(prompt, dir, s => setTask(tid, { note: s }), refs || [])
         .then(r => {
           const cur = meta(k);

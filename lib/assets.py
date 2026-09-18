@@ -4,12 +4,16 @@ images of companies, people, places and logos, no key needed. Evidence beats
 atmosphere: a photo of the actual thing lands where a generated mood shot does not."""
 import json, sys, os, subprocess, urllib.parse
 
-UA = "VideoDesk/1.0 (local editing tool)"
+UA = "Birch/1.0 (open source video editor; https://birch.video)"
 
 def get(url):
     r = subprocess.run(["curl", "-sS", "--max-time", "20", "-H", f"User-Agent: {UA}", url],
                        capture_output=True)
     return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else ""
+
+def plain(html):
+    import re
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html or "")).strip()[:80]
 
 def search(term, limit=6):
     # the page first, so we get the subject's own image rather than anything named alike
@@ -28,9 +32,38 @@ def search(term, limit=6):
         meta = ii.get("extmetadata") or {}
         out.append({"title": p.get("title", "").replace("File:", ""), "url": u,
                     "w": ii.get("thumbwidth") or ii.get("width"), "h": ii.get("thumbheight") or ii.get("height"),
-                    "credit": (meta.get("Artist", {}).get("value", "") or "")[:120],
+                    "credit": plain(meta.get("Artist", {}).get("value", "")),
                     "licence": meta.get("LicenseShortName", {}).get("value", "")})
     return out
+
+FREE_ENOUGH = ("public domain", "cc0", "cc by", "cc-by", "attribution", "gfdl", "free art")
+NOT_FREE = ("fair use", "non-free", "nonfree", "trademark", "all rights reserved")
+
+
+def free_file(name):
+    """Commons metadata for a file, or None when it is not on Commons or not free.
+
+    Wikipedia's own article image is often a non-free logo uploaded under fair use,
+    which nobody may put in their video. Only files that live on Commons under a
+    free licence come back from here."""
+    try:
+        m = json.loads(get("https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo"
+                           f"&iiprop=extmetadata|url&titles=File:{urllib.parse.quote(name)}") or "{}")
+    except Exception:
+        return None
+    for pg in (m.get("query", {}).get("pages") or {}).values():
+        if "missing" in pg:          # not on Commons, so treat it as not free
+            return None
+        meta = ((pg.get("imageinfo") or [{}])[0]).get("extmetadata") or {}
+        licence = (meta.get("LicenseShortName", {}).get("value", "") or "").strip()
+        low = licence.lower()
+        if any(b in low for b in NOT_FREE):
+            return None
+        if licence and not any(f in low for f in FREE_ENOUGH):
+            return None
+        return {"credit": meta.get("Artist", {}).get("value", "") or "", "licence": licence}
+    return None
+
 
 def lead_image(term):
     # the Wikipedia article's own picture: a company's logo, a person's portrait, a
@@ -43,21 +76,12 @@ def lead_image(term):
     for p in (d.get("query", {}).get("pages") or {}).values():
         th, name = p.get("thumbnail"), p.get("pageimage")
         if not th or not name: continue
-        credit, licence = "", ""
-        try:
-            m = json.loads(get("https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo"
-                               f"&iiprop=extmetadata&titles=File:{urllib.parse.quote(name)}") or "{}")
-            for pg in (m.get("query", {}).get("pages") or {}).values():
-                meta = ((pg.get("imageinfo") or [{}])[0]).get("extmetadata") or {}
-                credit = meta.get("Artist", {}).get("value", "") or ""
-                licence = meta.get("LicenseShortName", {}).get("value", "") or ""
-        except Exception: pass
-        return [{"title": name, "url": th["source"], "w": th.get("width"), "h": th.get("height"), "credit": credit, "licence": licence}]
+        free = free_file(name)
+        if not free:
+            return []            # the article's picture is not ours to use
+        return [{"title": name, "url": th["source"], "w": th.get("width"), "h": th.get("height"),
+                 "credit": free["credit"], "licence": free["licence"]}]
     return []
-
-def plain(html):
-    import re
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html or "")).strip()[:80]
 
 def main():
     cfg = json.load(sys.stdin)

@@ -71,7 +71,7 @@ public/birch/      the app
 site/              the landing page
 ```
 
-Projects live in `~/.birch/projects`, one folder per clip, and never leave your machine.
+Projects live in `~/.birch/projects`, one folder per clip. The video, the audio and the render stay there. The one thing that leaves is the planning step: when you connect Claude or ChatGPT, Birch sends that clip's transcript and three small frames to the CLI you signed in to, which sends them to Anthropic or OpenAI. Set `BIRCH_NO_CLAUDE=1` to keep even that local, and Birch still cuts, captions and scores.
 
 The face work uses Apple's Vision framework on a Mac and MediaPipe on Linux and Windows, so the same edits come out of all three.
 

@@ -71,12 +71,14 @@ node "$dir\bin\birch" %*
 "@ | Set-Content -Path $shim -Encoding ASCII
 Step "the birch command is in $binDir"
 
-$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-if ($null -eq $userPath) { $userPath = '' }
+$envKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Environment', $true)
+$userPath = $envKey.GetValue('Path', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+$kind = if ($userPath -match '%') { [Microsoft.Win32.RegistryValueKind]::ExpandString } else { [Microsoft.Win32.RegistryValueKind]::String }
 if (($userPath -split ';') -notcontains $binDir) {
-  [Environment]::SetEnvironmentVariable('Path', ($userPath.TrimEnd(';') + ';' + $binDir).TrimStart(';'), 'User')
+  $envKey.SetValue('Path', ($userPath.TrimEnd(';') + ';' + $binDir).TrimStart(';'), $kind)
   Step 'added it to your PATH. Open a new terminal for it.'
 }
+$envKey.Close()
 $env:Path = $env:Path + ';' + $binDir
 
 Say 'Opening Birch. The setup page walks you through the rest.'
