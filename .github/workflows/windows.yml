@@ -1,0 +1,70 @@
+name: Windows install and cut
+
+# Proves the whole thing works on a plain Windows box, from the PowerShell installer
+# to a finished mp4: ffmpeg downloaded into Birch's own folder, speech through
+# faster-whisper because whisper.cpp would need Visual Studio, faces from MediaPipe,
+# captions in Segoe. Runs on demand and once a week.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci-windows]
+  schedule:
+    - cron: '43 4 * * 1'
+
+jobs:
+  cut:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Birch the way the site says
+        env:
+          BIRCH_DIR: ${{ github.workspace }}\.birch-home
+          BIRCH_REPO: ${{ github.workspace }}
+          BIRCH_BIN_DIR: ${{ github.workspace }}\bin
+        run: |
+          .\install.ps1
+          "${{ github.workspace }}\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Skip the star and follow, which needs a person
+        run: Set-Content -Path "${{ github.workspace }}\.birch-home\.birch.json" -Value '{"github":"github-actions"}' -Encoding ascii
+
+      - name: Setup steps, the same buttons the page presses
+        working-directory: ${{ github.workspace }}\.birch-home
+        env:
+          BIRCH_DIR: ${{ github.workspace }}\.birch-home
+          # a real Windows machine has no python, and the runner does, so take the
+          # runner's away and make Birch fetch its own like a newcomer would
+          BIRCH_VENDOR_PYTHON: '1'
+        run: node "${{ github.workspace }}\.github\workflows\steps.js" setup
+
+      # in the user's own folder, because that is the only place Birch opens files from
+      - name: A real clip, public domain, with a face and speech
+        run: |
+          $ff = "${{ github.workspace }}\.birch-home\vendor\ffmpeg\bin\ffmpeg.exe"
+          Invoke-WebRequest -Uri "https://upload.wikimedia.org/wikipedia/commons/a/a5/Weekly_Address_%282009-01-24%29%2C_small.ogv" -OutFile "$env:USERPROFILE\full.ogv"
+          & $ff -v error -y -ss 12 -t 40 -i "$env:USERPROFILE\full.ogv" -c:v libx264 -crf 20 -c:a aac "$env:USERPROFILE\clip.mp4"
+          Get-Item "$env:USERPROFILE\clip.mp4" | Format-List Name, Length
+
+      - name: Cut it and export a reel
+        env:
+          BIRCH_DIR: ${{ github.workspace }}\.birch-home
+        run: node "${{ github.workspace }}\.github\workflows\steps.js" cut "$env:USERPROFILE\clip.mp4"
+
+      - name: Keep the result to look at
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cut
+          path: |
+            ${{ github.workspace }}\.birch-home\server.log
+            ${{ github.workspace }}\out\
+          if-no-files-found: warn

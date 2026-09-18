@@ -94,8 +94,22 @@ const PROJECTS = path.join(ROOT, 'projects');
 fs.mkdirSync(PROJECTS, { recursive: true });
 
 const VIDEO_EXT = /\.(mp4|mov|m4v|webm|mkv|avi|mp3|m4a|wav|aac)$/i;
-const BROWSE_DIRS = ['Desktop', 'Downloads', 'Movies', 'Documents']
+// Windows calls it Videos, everywhere else Movies
+const BROWSE_DIRS = ['Desktop', 'Downloads', 'Movies', 'Videos', 'Documents']
   .map(d => path.join(os.homedir(), d)).filter(d => fs.existsSync(d));
+
+// A file Birch will open: inside the user's home, or inside Birch's own folder.
+// Windows filenames do not care about case and the drive letter can come back
+// either way, so compare folded, and on a folder boundary so /home/bo is not
+// treated as part of /home/bob.
+function allowed(p) {
+  const fold = s => (process.platform === 'win32' ? s.toLowerCase() : s);
+  const inside = (a, b) => {
+    a = fold(path.resolve(a)); b = fold(path.resolve(b));
+    return a === b || a.startsWith(b.endsWith(path.sep) ? b : b + path.sep);
+  };
+  return inside(p, os.homedir()) || inside(p, ROOT);
+}
 
 const send = (res, code, body, type = 'application/json') => {
   res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store',
@@ -696,7 +710,7 @@ const server = http.createServer(async (req, res) => {
       const dir = u.searchParams.get('dir');
       if (!dir) return send(res, 200, { roots: BROWSE_DIRS.map(d => ({ path: d, name: path.basename(d) })) });
       const real = path.resolve(dir);
-      if (!real.startsWith(os.homedir())) return send(res, 403, { error: 'outside home folder' });
+      if (!allowed(real)) return send(res, 403, { error: 'outside home folder' });
       const items = fs.readdirSync(real, { withFileTypes: true })
         .filter(e => !e.name.startsWith('.'))
         .map(e => { const fp = path.join(real, e.name);
@@ -712,7 +726,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && p === '/api/importPath') {
       const { file } = await readJson(req);
       const real = path.resolve(file);
-      if (!real.startsWith(os.homedir()) || !fs.existsSync(real))
+      if (!allowed(real) || !fs.existsSync(real))
         return send(res, 400, { error: 'cannot read that file' });
       const nid = newProject(path.basename(real).replace(/\.[^.]+$/, ''), real, true);
       setJob(nid, { stage: 'queued', pct: 0 });

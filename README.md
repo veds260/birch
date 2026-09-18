@@ -4,12 +4,20 @@
 
 Birch cuts your talking videos into reels ([birch.video](https://birch.video)). Drop in a clip and he takes out the pauses and retakes, works out who's talking, puts their name on screen, throws the words they lean on up in big type and lays music underneath. You get an mp4.
 
-It runs on your own machine: macOS or Linux, and Windows through WSL2. Transcription is whisper.cpp, faces come from Apple's Vision framework on a Mac and MediaPipe elsewhere, and rendering is ffmpeg. The part that plans the edit goes through Claude Code or Codex, so it uses the Claude or ChatGPT plan you already have. No API keys, no uploads.
+It runs on your own machine: macOS, Linux or Windows. Speech goes through whisper.cpp where that can be installed and faster-whisper on Windows, faces come from Apple's Vision framework on a Mac and MediaPipe elsewhere, and rendering is ffmpeg. The part that plans the edit goes through Claude Code or Codex, so it uses the Claude or ChatGPT plan you already have. No API keys, no uploads.
 
 ## Install
 
+macOS and Linux:
+
 ```sh
 curl -fsSL https://birch.video/install | sh
+```
+
+Windows, in PowerShell:
+
+```powershell
+irm https://birch.video/install.ps1 | iex
 ```
 
 That puts Birch in `~/.birch`, gives you a `birch` command and opens the setup page in your browser. The page installs ffmpeg and whisper, downloads the speech model and builds the face tools, each with a button. It also asks you to star this repo and follow [@veds260](https://github.com/veds260) before it unlocks.
@@ -23,7 +31,7 @@ birch doctor           # what's set up and what isn't
 birch update           # pulls the latest version
 ```
 
-On a Mac you need [Homebrew](https://brew.sh). On Linux the setup page gives you one line to paste for ffmpeg and the build tools, and Birch builds whisper itself. For the auto plan, sign in to [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) or [Codex](https://github.com/openai/codex) from the setup page. Without either, Birch still cuts, captions and adds music.
+On a Mac you need [Homebrew](https://brew.sh). On Linux the setup page gives you one line to paste for ffmpeg and the build tools, and Birch builds whisper itself. On Windows you need Node 18 or newer and git, and the installer offers to fetch both with winget if they are missing; everything after that, ffmpeg and python and the speech model, Birch downloads into its own folder, so nothing asks for an administrator. For the auto plan, sign in to [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) or [Codex](https://github.com/openai/codex) from the setup page. Without either, Birch still cuts, captions and adds music.
 
 ## MCP
 
@@ -42,7 +50,7 @@ Then tell Claude something like "cut ~/Movies/talk.mov into a vertical reel" and
 - **Drops retakes and stumbles.** Say a line more than once and it keeps the last take. A stumble like "that that" loses one of them.
 - **Follows whoever is talking.** It reads lip movement against the audio, so in a wide shot it finds the person at the podium and not the biggest face in the crowd. When a 16:9 clip becomes 9:16 the crop stays on them, and captions move out of their way.
 - **Knows who's talking when the clip tells it.** A spoken intro, a name on screen or the file name is enough. It never guesses from a face.
-- **Adds animated inserts.** When the speaker names a company, person or place, a real photo from Wikipedia slides in with its credit. A number they say counts up, a website they mention shows up as a live screenshot in a browser window, and the main idea can land as a kinetic headline. They're HTML animations rendered on your Mac with [HyperFrames](https://github.com/heygen-com/hyperframes), and the templates are in `motion/` if you want to change them.
+- **Adds animated inserts.** When the speaker names a company, person or place, a real photo from Wikipedia slides in with its credit. A number they say counts up, a website they mention shows up as a live screenshot in a browser window, and the main idea can land as a kinetic headline. They're HTML animations rendered on your own machine with [HyperFrames](https://github.com/heygen-com/hyperframes), and the templates are in `motion/` if you want to change them.
 - **Picks a format.** Big word pops, split screen, numbered list, picture in picture, loud captions, handwritten, comment reply, story, or one big jolt. Birch marks the one it would use and you can change it.
 
 ## Code layout
@@ -65,7 +73,7 @@ site/              the landing page
 
 Projects live in `~/.birch/projects`, one folder per clip, and never leave your machine.
 
-The face work uses Apple's Vision framework on a Mac and MediaPipe on Linux, so the same edits come out of both.
+The face work uses Apple's Vision framework on a Mac and MediaPipe on Linux and Windows, so the same edits come out of all three.
 
 ## Options
 

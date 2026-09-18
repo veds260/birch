@@ -23,7 +23,7 @@ jobs:
         run: sudo mv /home/linuxbrew /home/linuxbrew-off || true
 
       - name: System packages a newcomer is told to install
-        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg cmake build-essential python3-pip python3-venv libegl1 libgl1 libglib2.0-0
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg cmake build-essential python3-pip python3-venv libegl1 libgl1 libgles2 libglib2.0-0
 
       - name: Install Birch the way the site says
         env:

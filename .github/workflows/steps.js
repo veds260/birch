@@ -103,7 +103,10 @@ async function cut(file) {
   console.log(`   rendered in ${Math.round((Date.now() - t1) / 1000)}s, ${(size / 1e6).toFixed(1)} MB, review: ${ex.note}`);
   if (size < 200000) fail('the export is too small to be a video');
   fs.copyFileSync(out, path.join(OUT, 'final.mp4'));
-  await new Promise(r => execFile('ffmpeg', ['-v', 'error', '-y', '-ss', '3', '-i', out, '-frames:v', '1', path.join(OUT, 'frame.png')], () => r()));
+  // whichever ffmpeg the install ended up with, which on Windows is one Birch fetched
+  let ff = 'ffmpeg';
+  try { ff = require(path.join(HOME, 'lib', 'bin.js')).FFMPEG; } catch {}
+  await new Promise(r => execFile(ff, ['-v', 'error', '-y', '-ss', '3', '-i', out, '-frames:v', '1', path.join(OUT, 'frame.png')], () => r()));
   console.log('   all good');
 }
 
