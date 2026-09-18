@@ -14,6 +14,12 @@ macOS and Linux:
 curl -fsSL https://birch.video/install | sh
 ```
 
+On Windows, in PowerShell:
+
+```powershell
+irm https://birch.video/install.ps1 | iex
+```
+
 Windows, in PowerShell:
 
 ```powershell
@@ -31,7 +37,7 @@ birch doctor           # what's set up and what isn't
 birch update           # pulls the latest version
 ```
 
-On a Mac you need [Homebrew](https://brew.sh). On Linux the setup page gives you one line to paste for ffmpeg and the build tools, and Birch builds whisper itself. On Windows you need Node 18 or newer and git, and the installer offers to fetch both with winget if they are missing; everything after that, ffmpeg and python and the speech model, Birch downloads into its own folder, so nothing asks for an administrator. For the auto plan, sign in to [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) or [Codex](https://github.com/openai/codex) from the setup page. Without either, Birch still cuts, captions and adds music.
+On a Mac you need [Homebrew](https://brew.sh). On Linux the setup page gives you one line to paste for ffmpeg and the graphics libraries, and Birch builds whisper itself. On Windows Birch fetches ffmpeg for you and transcribes with faster-whisper, so there is nothing to compile. On Windows you need Node 18 or newer and git, and the installer offers to fetch both with winget if they are missing; everything after that, ffmpeg and python and the speech model, Birch downloads into its own folder, so nothing asks for an administrator. For the auto plan, sign in to [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) or [Codex](https://github.com/openai/codex) from the setup page. Without either, Birch still cuts, captions and adds music.
 
 ## MCP
 
