@@ -14,12 +14,6 @@ macOS and Linux:
 curl -fsSL https://birch.video/install | sh
 ```
 
-On Windows, in PowerShell:
-
-```powershell
-irm https://birch.video/install.ps1 | iex
-```
-
 Windows, in PowerShell:
 
 ```powershell
